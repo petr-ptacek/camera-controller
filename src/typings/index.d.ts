@@ -1,6 +1,7 @@
 export {
   CameraControllerOptions,
-  VideoOptions
+  VideoOptions,
+  ScreenshotOptions
 } from './CameraController';
 
 export {
