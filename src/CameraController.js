@@ -1,30 +1,10 @@
 /**
- * @typedef CanvasOptions
- * @property {number|undefined} [width]
- * @property {number|undefined} [height]
- * @property {string|undefined} [bgColor]
+ * @typedef {import('@/typings').CameraControllerOptions} CameraControllerOptions
+ * @typedef {import('@/typings').VideoOptions} VideoOptions
+ * @typedef {import('@/typings').CanvasOptions} CanvasOptions
  */
 
-/**
- * @typedef VideoOptions
- * @property {Object} width
- * @property {number|undefined} width.max
- * @property {number|undefined} width.min
- * @property {number|undefined} width.ideal
- * @property {Object} height
- * @property {number|undefined} height.max
- * @property {number|undefined} height.min
- * @property {number|undefined} height.ideal
- */
-
-/**
- * @typedef CameraControllerOptions
- * @property {VideoOptions} [videoOptions]
- * @property {Function|undefined} [onDeviceNotAllowed]
- * @property {Function|undefined} [onDeviceNotFound]
- * @property {Function|undefined} [onRecordingStart]
- * @property {Function|undefined} [onRecordingEnd]
- */
+import { attachElementToDom } from '@/utils/attachElementToDom';
 
 export class CameraController {
 
@@ -58,6 +38,13 @@ export class CameraController {
   }
 
   /**
+   * @returns {MediaStream|null}
+   */
+  get mediaStream() {
+    return this._mediaStream;
+  }
+
+  /**
    * @return {boolean}
    */
   get isRecording() {
@@ -66,6 +53,7 @@ export class CameraController {
 
   /**
    * @returns {boolean}
+   * @static
    */
   static isAvailableCameraDevice() {
     return (
@@ -81,10 +69,10 @@ export class CameraController {
    */
   _createCanvasElement(options = {}) {
 
-    /**
-     * @type {HTMLCanvasElement}
-     */
+    /** @type {HTMLCanvasElement} */
     const canvas = document.createElement('canvas');
+    /** @type {CanvasRenderingContext2D} */
+    const ctx = canvas.getContext('2d');
 
     if ( typeof options.width === 'number' ) {
       canvas.width = options.width;
@@ -93,11 +81,6 @@ export class CameraController {
     if ( typeof options.height === 'number' ) {
       canvas.height = options.height;
     }
-
-    /**
-     * @type {CanvasRenderingContext2D}
-     */
-    const ctx = canvas.getContext('2d');
 
     if ( typeof options.bgColor === 'string' ) {
       ctx.fillStyle = options.bgColor;
@@ -118,14 +101,8 @@ export class CameraController {
      * @type {HTMLVideoElement}
      */
     const videoElement = document.createElement('video');
-
-    videoElement.onplay = (ev) => {
-      console.log('play');
-    };
-
-    videoElement.onerror = (ev) => {
-      console.log('error');
-    };
+    videoElement.muted = true;
+    videoElement.autoplay = true;
 
     return videoElement;
   }
@@ -135,26 +112,30 @@ export class CameraController {
    * @private
    */
   async _createMediaStream() {
-    /**
-     * @type {MediaStream|null}
-     */
+    /** @type {MediaStream|null} */
     let mediaStream = null;
 
-    const { videoOptions } = this._options;
+    const videoOptions = this._options.videoOptions ?? {};
+    const videoWidth = typeof videoOptions.width === 'number' ?
+      videoOptions.width :
+      {
+        min: 1280,
+        max: 2560,
+        ideal: 1280
+      };
+    const videoHeight = typeof videoOptions.height === 'number' ?
+      videoOptions.height :
+      {
+        max: 1440,
+        min: 720,
+        ideal: 960
+      };
 
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: {
-            max: videoOptions?.width?.max ?? 2560,
-            min: videoOptions?.width?.min ?? 1280,
-            ideal: videoOptions?.width?.ideal ?? 1280
-          },
-          height: {
-            max: videoOptions?.height?.max ?? 1440,
-            min: videoOptions?.height?.min ?? 720,
-            ideal: videoOptions?.height?.ideal ?? 960
-          }
+          width: videoWidth,
+          height: videoHeight
         },
         audio: false
       });
@@ -166,8 +147,8 @@ export class CameraController {
       const [mediaStreamTrack] = mediaStream.getTracks().filter(track => track.kind === 'video');
 
       mediaStreamTrack.onended = ev => {
-        debugger
-        // this.stopRecording();
+        this._options.onRecordingInterrupted?.();
+        this.stopRecording();
       };
     }
 
@@ -180,33 +161,19 @@ export class CameraController {
    */
   _onCreateMediaStreamError(error) {
     switch ( error.name ) {
-      case 'NotAllowedError':
-        this._onNotAllowed(error);
+      case 'NotAllowedError': {
+        this._options.onDevicePermissionDenied?.();
+        this.stopRecording();
+      }
         break;
-      case 'NotFoundError':
-        this._onNotFound(error);
+      case 'NotFoundError': {
+        this._options.onDeviceNotAvailable?.();
+        this.stopRecording();
+      }
         break;
       default:
         console.log(error);
     }
-  }
-
-  /**
-   * @param {Error} error
-   * @private
-   */
-  _onNotAllowed(error) {
-    this.stopRecording();
-    this._options.onDeviceNotAllowed?.();
-  }
-
-  /**
-   * @param {Error} error
-   * @private
-   */
-  _onNotFound(error) {
-    this.stopRecording();
-    this._options.onDeviceNotFound?.();
   }
 
   /**
@@ -227,7 +194,10 @@ export class CameraController {
       this._mediaStream = null;
     }
 
-    this._options.onRecordingEnd?.();
+    if ( this._isRecording ) {
+      this._options.onRecordingEnd?.();
+    }
+
     this._isRecording = false;
   }
 
@@ -237,7 +207,7 @@ export class CameraController {
    */
   async startRecording() {
     if ( !CameraController.isAvailableCameraDevice() ) {
-      this._options.onDeviceNotFound?.();
+      this._options.onDeviceNotAvailable?.();
       return false;
     }
 
@@ -245,7 +215,6 @@ export class CameraController {
 
     if ( this._mediaStream ) {
       this._videoElement.srcObject = this._mediaStream;
-      await this._videoElement.play();
       this._options.onRecordingStart?.();
     }
 
@@ -257,8 +226,8 @@ export class CameraController {
    * @returns {string|null}
    * @public
    */
-  makeScreenshotBase64() {
-    if ( !this._videoElement.played ) {
+  getScreenshotBase64() {
+    if ( !this._isRecording ) {
       return null;
     }
 
@@ -283,8 +252,14 @@ export class CameraController {
   /**
    * @returns {Promise<HTMLImageElement|null>}
    */
-  makeScreenshotImg() {
+  getScreenshotImg() {
     return new Promise((resolve, reject) => {
+      const base64 = this.getScreenshotBase64();
+
+      if ( !base64 ) {
+        resolve(null);
+      }
+
       const img = new Image();
 
       img.onload = () => {
@@ -295,7 +270,7 @@ export class CameraController {
         reject(e);
       };
 
-      img.src = this.makeScreenshotBase64();
+      img.src = base64;
 
       if ( img.complete ) {
         delete img.onload;
@@ -306,27 +281,20 @@ export class CameraController {
   }
 
   /**
-   * @param {HTMLElement} element
-   * @param {HTMLElement|string} elementOrSelector
-   * @returns {void}
-   * @private
-   */
-  _attachElement2DOM(element, elementOrSelector) {
-    if ( typeof elementOrSelector === 'string' ) {
-      document.querySelector(elementOrSelector).append(element);
-    }
-
-    if ( elementOrSelector instanceof HTMLElement ) {
-      elementOrSelector.append(element);
-    }
-  }
-
-  /**
    * @param {HTMLElement|string} elementOrSelector
    * @returns {void}
    * @public
    */
-  attachVideoElement(elementOrSelector) {
-    this._attachElement2DOM(this._videoElement, elementOrSelector);
+  insertVideoElement(elementOrSelector) {
+    attachElementToDom(this._videoElement, elementOrSelector);
+  }
+
+  /**
+   * @returns {void}
+   */
+  removeVideoElement() {
+    if ( this._videoElement.parentElement ) {
+      this._videoElement.parentElement.removeChild(this._videoElement);
+    }
   }
 }

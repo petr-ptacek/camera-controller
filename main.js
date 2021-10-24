@@ -1,62 +1,48 @@
 import './style.css';
-import { CameraController }          from './CameraController.js';
-import { base64ToBlob }              from './utils/base64ToBlob';
-import { blobToFile }                from './utils/blobToFile';
-import { download }                  from './utils/download';
-import { shrinkImgBasedAspectRatio } from './utils/shrinkImgBasedAspectRatio.js';
+import { CameraController } from '@/CameraController.js';
 
+const btnCameraOn = document.getElementById('btn-camera-on');
+const btnCameraOff = document.getElementById('btn-camera-off');
+const btnScreenshot = document.getElementById('btn-make-screenshot');
 const cameraController = new CameraController({
-  onDeviceNotFound: () => {
-    console.log('device not found');
+  videoOptions: {
+    width: 400,
+    height: 300
   },
-  onDeviceNotAllowed: () => {
-    console.log('device not allowed');
+  onRecordingStart() {
+    cameraController.insertVideoElement('#video-wrapper');
   },
-  onDeviceDisabled: () => {
-    console.log('device disabled');
+  onRecordingEnd() {
+    cameraController.removeVideoElement();
+  },
+  onRecordingInterrupted() {
+    console.log('Recording Interrupted!');
+  },
+  onDeviceNotAvailable() {
+    console.log('Device not available!');
+  },
+  onDevicePermissionDenied() {
+    console.log('Device permission denied!');
   }
 });
-/**
- * @type {HTMLButtonElement}
- */
-const btnRecordingStart = document.getElementById('btn-recording-start');
 
-/**
- * @type {HTMLButtonElement}
- */
-const btnRecordingStop = document.getElementById('btn-recording-stop');
-
-/**
- * @type {HTMLButtonElement}
- */
-const btnMakeScreenshot = document.getElementById('btn-make-screenshot');
-
-
-cameraController.attachVideoElement('#video');
-
-btnRecordingStart.addEventListener('click', () => {
+function startCamera() {
   cameraController.startRecording();
-});
+}
 
-btnRecordingStop.addEventListener('click', () => {
+function stopCamera() {
   cameraController.stopRecording();
-});
+}
 
-btnMakeScreenshot.addEventListener('click', async () => {
-  const screenshot = await cameraController.makeScreenshotImg();
+async function makeScreenshot() {
+  const screenshotImg = await cameraController.getScreenshotImg();
 
-  const file = blobToFile(
-    base64ToBlob(screenshot.src),
-    { fileName: 'screenshot' }
-  );
+  if ( screenshotImg ) {
+    document.getElementById('screenshot-chunk').innerHTML = '';
+    document.getElementById('screenshot-chunk').append(screenshotImg);
+  }
+}
 
-  document.getElementById('screenshot').innerHTML = '';
-  document.getElementById('screenshot').append(screenshot);
-
-  const shrinkImg = await shrinkImgBasedAspectRatio(
-    screenshot
-  );
-
-  document.getElementById('screenshot-shrink').innerHTML = '';
-  document.getElementById('screenshot-shrink').append(shrinkImg);
-});
+btnCameraOn.addEventListener('click', startCamera);
+btnCameraOff.addEventListener('click', stopCamera);
+btnScreenshot.addEventListener('click', makeScreenshot);
