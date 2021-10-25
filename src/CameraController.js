@@ -23,7 +23,7 @@ export default class CameraController {
      * @type {FaceDetector}
      * @private
      */
-    this._faceDetector = new FaceDetector(options.faceDetectorOptions);
+    // this._faceDetector = new FaceDetector(options.faceDetectorOptions);
 
     /**
      * @type {CameraControllerOptions}
@@ -319,6 +319,7 @@ export default class CameraController {
       this._options.onDeviceNotAvailable?.();
       return false;
     }
+
 
     this._mediaStream = await this._createMediaStream();
 
