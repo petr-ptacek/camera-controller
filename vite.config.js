@@ -4,9 +4,9 @@ import * as path        from 'path';
 export default defineConfig({
   build: {
     lib: {
-      entry: path.resolve(__dirname, './TestMonitor.js'),
-      fileName: format => `TestMonitor.${ format }.js`,
-      name: 'TestMonitor'
+      entry: path.resolve(__dirname, './src/CameraController.js'),
+      fileName: format => `CameraController.${ format }.js`,
+      name: 'CameraController'
     }
   },
   resolve: {

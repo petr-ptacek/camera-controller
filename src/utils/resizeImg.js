@@ -1,35 +1,24 @@
+import { createImgFromBase64 } from './createImgFromBase64.js';
+
 /**
- * @param {HTMLImageElement} img
+ * @description Create a new resized HTMLImageElement from base64 or other HTMLImageElement
+ * @param {HTMLImageElement|string} imgOrBase64
  * @param {Object} options
  * @param {number} options.width
  * @param {number} options.height
  * @param {number} [options.quality]
  * @returns {Promise<HTMLImageElement>}
  */
-export function resizeImg(img, options) {
-  let resolve = null;
-  let reject = null;
-  const promise = new Promise((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
+export async function resizeImg(imgOrBase64, options) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
+  const img = imgOrBase64 instanceof HTMLImageElement ?
+    imgOrBase64 :
+    await createImgFromBase64(imgOrBase64);
 
   canvas.width = options.width;
   canvas.height = options.height;
   ctx.drawImage(img, 0, 0, options.width, options.height);
 
-  const resizedImg = new Image();
-  resizedImg.onload = () => resolve(resizedImg);
-  resizedImg.onerror = (e) => reject(e);
-  resizedImg.src = canvas.toDataURL(undefined, options.quality);
-
-  if ( resizedImg.complete ) {
-    delete resizedImg.onload;
-    delete resizedImg.onerror;
-    resolve(resizedImg);
-  }
-
-  return promise;
+  return await createImgFromBase64(canvas.toDataURL(undefined, options.quality));
 }

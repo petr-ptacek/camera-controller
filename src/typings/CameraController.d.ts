@@ -1,23 +1,18 @@
 type VideoOptions = {
-  class?: string;
-  id?: string;
-  width?: {
-    max?: number;
-    min?: number;
-    ideal?: number;
-  } | number;
-  height?: {
-    max?: number;
-    min?: number;
-    ideal?: number;
-  } | number;
+  width?: number;
+  height?: number;
+  elementOrSelector?: HTMLElement | string;
 }
 
 type ScreenshotOptions = {
   width?: number;
   height?: number;
+  quality?: number;
   useAspectRatio?: boolean;
 }
+
+type FileScreenshotOptions = ScreenshotOptions &
+    { fileName?: string }
 
 type CameraControllerOptions = {
   videoOptions?: VideoOptions;
@@ -32,5 +27,6 @@ type CameraControllerOptions = {
 export {
   VideoOptions,
   ScreenshotOptions,
+  FileScreenshotOptions,
   CameraControllerOptions
 };

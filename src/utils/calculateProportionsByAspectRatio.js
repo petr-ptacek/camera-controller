@@ -1,8 +1,8 @@
 /**
- * @param originWidth
- * @param originHeight
- * @param newWidth
- * @param newHeight
+ * @param {number} originWidth
+ * @param {number} originHeight
+ * @param {number} newWidth
+ * @param {number} newHeight
  * @returns {{width: number, height: number}}
  */
 export function calculateProportionsByAspectRatio(
