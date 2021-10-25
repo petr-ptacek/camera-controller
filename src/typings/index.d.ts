@@ -6,5 +6,9 @@ export {
 } from './CameraController';
 
 export {
+  FaceDetectorOptions
+} from './FaceDetector';
+
+export {
   CanvasOptions
 } from './CanvasOptions';

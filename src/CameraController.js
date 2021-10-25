@@ -6,6 +6,7 @@
  * @typedef {import('@/typings').CanvasOptions} CanvasOptions
  */
 
+import { FaceDetector }              from '@/FaceDetector';
 import { attachElementToDom }        from '@/utils/attachElementToDom';
 import { resizeImgBasedAspectRatio } from '@/utils/resizeImgBasedAspectRatio';
 import { resizeImg }                 from '@/utils/resizeImg';
@@ -18,6 +19,12 @@ export default class CameraController {
    * @param {CameraControllerOptions} [options]
    */
   constructor(options = {}) {
+    /**
+     * @type {FaceDetector}
+     * @private
+     */
+    this._faceDetector = new FaceDetector(options.faceDetectorOptions);
+
     /**
      * @type {CameraControllerOptions}
      * @private

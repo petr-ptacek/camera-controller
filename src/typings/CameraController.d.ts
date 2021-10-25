@@ -1,3 +1,5 @@
+import { FaceDetectorOptions } from './FaceDetector';
+
 type VideoOptions = {
   width?: number;
   height?: number;
@@ -17,11 +19,16 @@ type FileScreenshotOptions = ScreenshotOptions &
 type CameraControllerOptions = {
   videoOptions?: VideoOptions;
   screenshotOptions?: ScreenshotOptions;
+  faceDetectorOptions?: FaceDetectorOptions;
+
   onRecordingStart?: () => void;
   onRecordingEnd?: () => void;
   onRecordingInterrupted?: () => void;
   onDeviceNotAvailable?: () => void;
   onDevicePermissionDenied?: () => void;
+
+  onFaceDetected?: () => void;
+  onFaceUndetected?: () => void;
 }
 
 export {
