@@ -8,6 +8,9 @@ const btnScreenshotAsImg = document.getElementById('btn-make-screenshot-img');
 const btnScreenshotAsFile = document.getElementById('btn-make-screenshot-file');
 
 const cameraController = new CameraController({
+  faceDetectOptions: {
+    modelsUrl: new window.URL(`${ window.location.origin }/face-api-models`).toString()
+  },
   videoOptions: {
     width: 200,
     height: 200,
@@ -20,11 +23,9 @@ const cameraController = new CameraController({
   },
   onRecordingStart() {
     console.log('Recording start!');
-    // cameraController.insertVideoScreen('#video-wrapper');
   },
   onRecordingEnd() {
     console.log('Recording end!');
-    // cameraController.removeVideoScreen();
   },
   onRecordingInterrupted() {
     console.log('Recording Interrupted!');
@@ -34,6 +35,12 @@ const cameraController = new CameraController({
   },
   onDevicePermissionDenied() {
     console.log('Device permission denied!');
+  },
+  onFaceDetected() {
+
+  },
+  onFaceUndetected() {
+
   }
 });
 
@@ -43,6 +50,7 @@ function startCamera() {
 
 function stopCamera() {
   cameraController.stopRecording();
+  document.getElementById('screenshot-chunk').innerHTML = '';
 }
 
 async function makeScreenshotImg() {

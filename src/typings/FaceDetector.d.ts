@@ -1,5 +1,6 @@
 type FaceDetectorOptions = {
-  interval?: number;
+  modelsUrl: string;
+  videoInput: HTMLVideoElement;
 }
 
 export {

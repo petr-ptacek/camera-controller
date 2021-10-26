@@ -23,7 +23,9 @@ export default class CameraController {
      * @type {FaceDetector}
      * @private
      */
-    // this._faceDetector = new FaceDetector(options.faceDetectorOptions);
+    this._faceDetector = new FaceDetector({
+      modelsUrl: options.faceDetectOptions.modelsUrl
+    });
 
     /**
      * @type {CameraControllerOptions}
@@ -57,13 +59,13 @@ export default class CameraController {
      * @type {HTMLVideoElement}
      * @private
      */
-    this._videoBaseElement = this._createBaseVideoElement();
+    this._videoBaseElement = null;//this._createBaseVideoElement();
 
     /**
      * @type {HTMLVideoElement}
      * @private
      */
-    this._videoScreenElement = this._createVideoElement();
+    this._videoScreenElement = null;//this._createVideoElement();
 
     /**
      * @type {(MediaStream|null)}
@@ -76,6 +78,12 @@ export default class CameraController {
      * @private
      */
     this._isRecording = false;
+
+    /**
+     * @type {boolean}
+     * @private
+     */
+    this._isActiveFaceDetection = false;
   }
 
   /**
@@ -101,6 +109,18 @@ export default class CameraController {
       'mediaDevices' in navigator &&
       'getUserMedia' in navigator.mediaDevices
     );
+  }
+
+  /**
+   * @return {Promise<boolean>}
+   * @private
+   */
+  async _detectFace() {
+    return await this._faceDetector.detect(this._videoBaseElement);
+  }
+
+  async _detectFaceGraphically() {
+    return this._faceDetector;
   }
 
   /**
@@ -159,14 +179,9 @@ export default class CameraController {
    */
   _createBaseVideoElement() {
     const videoElement = this._createVideoElement();
-    videoElement.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -10000;
-      opacity: 0;
-    `;
-
+    videoElement.dataset.cssVisible = '';
+    videoElement.dataset.cssHidden = 'position:fixed;top:0;left:0;z-index:-10000;opacity:0;';
+    videoElement.style.cssText = videoElement.dataset.cssHidden;
     return videoElement;
   }
 
@@ -264,12 +279,18 @@ export default class CameraController {
    * @private
    */
   _destroyVideoBase() {
+    if ( !this._videoBaseElement ) {
+      return;
+    }
+
     this._videoBaseElement.pause();
     this._videoBaseElement.srcObject = null;
 
     if ( this._videoBaseElement.parentElement ) {
       this._videoBaseElement.parentElement.removeChild(this._videoBaseElement);
     }
+
+    this._videoScreenElement = null;
   }
 
   /**
@@ -277,7 +298,13 @@ export default class CameraController {
    * @private
    */
   _destroyVideoScreen() {
+    if ( !this._videoScreenElement ) {
+      return;
+    }
+
     this.removeVideoScreen();
+
+    this._videoScreenElement = null;
   }
 
   /**
@@ -310,6 +337,14 @@ export default class CameraController {
     this._isRecording = false;
   }
 
+  showBaseVideoElement() {
+    this._videoBaseElement.style.cssText = '';
+  }
+
+  hideBaseVideoElement() {
+    this._videoBaseElement.style.cssText = this._videoBaseElement.dataset.cssHidden;
+  }
+
   /**
    * @returns {Promise<boolean>}
    * @public
@@ -320,12 +355,17 @@ export default class CameraController {
       return false;
     }
 
-
+    // Create MediaStream
     this._mediaStream = await this._createMediaStream();
 
     if ( this._mediaStream ) {
-      document.body.append(this._videoBaseElement);
+      // Create VideoBase
+      this._videoBaseElement = this._createBaseVideoElement();
       this._videoBaseElement.srcObject = this._mediaStream;
+      document.body.append(this._videoBaseElement);
+
+      // Create ScreenVideo
+      this._videoScreenElement = this._createVideoElement();
 
       if ( this._videoOptions.elementOrSelector ) {
         this.insertVideoScreen(this._videoOptions.elementOrSelector);
@@ -370,11 +410,9 @@ export default class CameraController {
       ...options
     };
 
-    const resizedImg = _options.useAspectRatio ?
+    return _options.useAspectRatio ?
       await resizeImgBasedAspectRatio(videoScreenshotBase64, _options) :
       await resizeImg(videoScreenshotBase64, _options);
-
-    return resizedImg;
   }
 
   /**

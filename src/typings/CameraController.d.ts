@@ -13,13 +13,18 @@ type ScreenshotOptions = {
   useAspectRatio?: boolean;
 }
 
-type FileScreenshotOptions = ScreenshotOptions &
-    { fileName?: string }
+type FileScreenshotOptions = ScreenshotOptions & { fileName?: string }
+
+type FaceDetectOptions =
+    Pick<FaceDetectorOptions, 'modelsUrl'> &
+    {
+      timeout
+    }
 
 type CameraControllerOptions = {
   videoOptions?: VideoOptions;
   screenshotOptions?: ScreenshotOptions;
-  faceDetectorOptions?: FaceDetectorOptions;
+  faceDetectOptions?: FaceDetectOptions;
 
   onRecordingStart?: () => void;
   onRecordingEnd?: () => void;

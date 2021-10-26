@@ -2,6 +2,8 @@
  * @typedef {import('@/typings').FaceDetectorOptions} FaceDetectorOptions
  */
 
+import { execAsync } from '@/utils/execAsync';
+
 export class FaceDetector {
 
   /**
@@ -10,43 +12,98 @@ export class FaceDetector {
   constructor(options) {
 
     /**
-     * @type {FaceDetectorOptions}
+     * @type {string}
      * @private
      */
-    this._options = options;
+    this._modelsUrl = options.modelsUrl;
 
     /**
-     * @type {TinyFaceDetectorOptions|null}
+     * @type {any|null}
      * @private
      */
-    this._faceDetectorOptions = null;
+    this._tinyFaceDetectorOptions = null;
+
+    /**
+     * @type {HTMLVideoElement}
+     * @private
+     */
+    this._videoInput = options.videoInput;
+
+    /**
+     * @type {HTMLCanvasElement}
+     * @private
+     */
+    this._canvas = null;
   }
 
   /**
-   * @param {HTMLImageElement} img
    * @returns {DetectSingleFaceTask}
+   * @private
    */
-  _getFaceDetectionFromImg(img) {
-    return faceapi.detectSingleFace(img, this._faceDetectorOptions);
+  async _detectSingleFace() {
+    return await faceapi.detectSingleFace(this._videoInput, this._tinyFaceDetectorOptions);
   }
 
   /**
-   * @param {HTMLImageElement} img
-   * @returns {boolean}
+   * @returns {void}
+   * @public
    */
-  isFaceDetected(img) {
-    return !!this._getFaceDetectionFromImg(img);
+  async drawDetectionBox() {
+    const detection = await this._detectSingleFace();
+
+    if ( !detection ) {
+      return;
+    }
+
+    if ( !this._canvas ) {
+      this._canvas = faceapi.createCanvasFromMedia(input);
+      this._canvas.style.position = 'absolute';
+      document.body.append(this._canvas);
+    }
+
+    this._canvas
+        .getContext('2d')
+        .clearRect(0, 0, this._canvas.width, this._canvas.height);
+
+    faceapi.matchDimensions(this._canvas, { width: this.i });
+    faceapi.draw.drawDetections(this._canvas, faceapi.resizeResults(faceDetection, input));
   }
 
   /**
    * @returns {Promise<void>}
+   * @public
    */
   async loadModels() {
-    await faceapi.nets.tinyFaceDetector.loadFromUri('/face-api-models');
+    const modelsToLoaded = [];
+
+    if ( !faceapi.nets.tinyFaceDetector.isLoaded ) {
+      modelsToLoaded.push(
+        faceapi.nets.tinyFaceDetector.loadFromUri(this._modelsUrl)
+      );
+    }
+
+    await Promise.all(modelsToLoaded);
   }
 
+  /**
+   * @returns {void}
+   */
+  destroy() {
+
+  }
+
+  /**
+   * @returns {Promise<void>}
+   * @public
+   */
   async init() {
-    await this.loadModels();
-    this._faceDetectorOptions = new faceapi.TinyFaceDetectorOptions();
+    const { error } = await execAsync(this.loadModels());
+
+    if ( error ) {
+      throw new Error('Failed to load face-api models ...');
+    }
+
+
+    this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
   }
 }

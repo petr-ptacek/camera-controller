@@ -19,7 +19,7 @@ export async function execAsync(promise) {
   const result = { data: null, error: null };
 
   try {
-    result.result = await promise;
+    result.data = await promise;
   } catch ( e ) {
     result.error = e;
   }
