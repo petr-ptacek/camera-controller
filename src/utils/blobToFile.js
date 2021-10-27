@@ -2,7 +2,7 @@
  * @param {Blob} blob
  * @param {Object} options
  * @param {string} options.fileName
- * @param {string|undefined} [options.mimeType]
+ * @param {string?} options.mimeType
  * @returns {File}
  */
 export function blobToFile(blob, options) {

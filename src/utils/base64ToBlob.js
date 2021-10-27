@@ -6,8 +6,8 @@
 
 /**
  * @param {string} base64
- * @param {Object} [options]
- * @param {string} [options.mimeType]
+ * @param {Object?} options
+ * @param {string?} options.mimeType
  * @returns {Blob}
  */
 export function base64ToBlob(base64, options = {}) {

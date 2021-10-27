@@ -6,12 +6,15 @@
  * @typedef {import('@/typings').CanvasOptions} CanvasOptions
  */
 
-import { FaceDetector }              from '@/FaceDetector';
-import { attachElementToDom }        from '@/utils/attachElementToDom';
-import { resizeImgBasedAspectRatio } from '@/utils/resizeImgBasedAspectRatio';
-import { resizeImg }                 from '@/utils/resizeImg';
-import { base64ToBlob }              from '@/utils/base64ToBlob';
-import { blobToFile }                from '@/utils/blobToFile';
+import { FaceDetector } from '@/FaceDetector';
+import {
+  createCanvas,
+  blobToFile,
+  base64ToBlob,
+  resizeImg,
+  resizeImgBasedAspectRatio,
+  insertElementToDOM, createVideo
+}                       from '@/utils';
 
 export default class CameraController {
 
@@ -19,14 +22,6 @@ export default class CameraController {
    * @param {CameraControllerOptions} [options]
    */
   constructor(options = {}) {
-    /**
-     * @type {FaceDetector}
-     * @private
-     */
-    this._faceDetector = new FaceDetector({
-      modelsUrl: options.faceDetectOptions.modelsUrl
-    });
-
     /**
      * @type {CameraControllerOptions}
      * @private
@@ -56,16 +51,24 @@ export default class CameraController {
     };
 
     /**
-     * @type {HTMLVideoElement}
+     * @type {FaceDetector}
      * @private
      */
-    this._videoBaseElement = null;//this._createBaseVideoElement();
+    this._faceDetector = new FaceDetector({
+      modelsUrl: options.faceDetectOptions.modelsUrl
+    });
 
     /**
      * @type {HTMLVideoElement}
      * @private
      */
-    this._videoScreenElement = null;//this._createVideoElement();
+    this._videoBaseElement = null; //this._createBaseVideoElement();
+
+    /**
+     * @type {HTMLVideoElement}
+     * @private
+     */
+    this._videoScreenElement = null; //this._createVideoElement();
 
     /**
      * @type {(MediaStream|null)}
@@ -77,13 +80,7 @@ export default class CameraController {
      * @type {boolean}
      * @private
      */
-    this._isRecording = false;
-
-    /**
-     * @type {boolean}
-     * @private
-     */
-    this._isActiveFaceDetection = false;
+    this._isActive = false;
   }
 
   /**
@@ -94,10 +91,17 @@ export default class CameraController {
   }
 
   /**
-   * @return {boolean}
+   * @returns {MediaStream|null}
    */
-  get isRecording() {
-    return this._isRecording;
+  getMediaStream() {
+    return this._mediaStream?.clone() ?? null;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  isActive() {
+    return this._isActive;
   }
 
   /**
@@ -112,77 +116,23 @@ export default class CameraController {
   }
 
   /**
-   * @return {Promise<boolean>}
-   * @private
-   */
-  async _detectFace() {
-    return await this._faceDetector.detect(this._videoBaseElement);
-  }
-
-  async _detectFaceGraphically() {
-    return this._faceDetector;
-  }
-
-  /**
-   * @param {CanvasOptions} [options]
-   * @returns {HTMLCanvasElement}
-   * @private
-   */
-  _createCanvasElement(options = {}) {
-
-    /** @type {HTMLCanvasElement} */
-    const canvas = document.createElement('canvas');
-    /** @type {CanvasRenderingContext2D} */
-    const ctx = canvas.getContext('2d');
-
-    if ( typeof options.width === 'number' ) {
-      canvas.width = options.width;
-    }
-
-    if ( typeof options.height === 'number' ) {
-      canvas.height = options.height;
-    }
-
-    if ( typeof options.bgColor === 'string' ) {
-      ctx.fillStyle = options.bgColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fill();
-    }
-
-    return canvas;
-  }
-
-  /**
-   * @param {VideoOptions} [options]
-   * @returns {HTMLVideoElement}
-   * @private
-   */
-  _createVideoElement(options = {}) {
-    /**
-     * @type {HTMLVideoElement}
-     */
-    const videoElement = document.createElement('video');
-    videoElement.muted = true;
-    videoElement.autoplay = true;
-
-    if ( typeof options.width === 'number' && typeof options.height === 'number' ) {
-      videoElement.width = options.width;
-      videoElement.height = options.height;
-    }
-
-    return videoElement;
-  }
-
-  /**
    * @returns {HTMLVideoElement}
    * @private
    */
   _createBaseVideoElement() {
-    const videoElement = this._createVideoElement();
+    const videoElement = createVideo();
     videoElement.dataset.cssVisible = '';
     videoElement.dataset.cssHidden = 'position:fixed;top:0;left:0;z-index:-10000;opacity:0;';
     videoElement.style.cssText = videoElement.dataset.cssHidden;
     return videoElement;
+  }
+
+  showBaseVideoElement() {
+    this._videoBaseElement.style.cssText = '';
+  }
+
+  hideBaseVideoElement() {
+    this._videoBaseElement.style.cssText = this._videoBaseElement.dataset.cssHidden;
   }
 
   /**
@@ -202,7 +152,7 @@ export default class CameraController {
         audio: false
       });
     } catch ( error ) {
-      this._onCreateMediaStreamError(error);
+      this._createMediaStreamErrorHandler(error);
     }
 
     if ( mediaStream ) {
@@ -210,7 +160,7 @@ export default class CameraController {
 
       mediaStreamTrack.onended = ev => {
         this._options.onRecordingInterrupted?.();
-        this.stopRecording();
+        this.stop();
       };
     }
 
@@ -221,16 +171,16 @@ export default class CameraController {
    * @param {Error} error
    * @private
    */
-  _onCreateMediaStreamError(error) {
+  _createMediaStreamErrorHandler(error) {
     switch ( error.name ) {
       case 'NotAllowedError': {
         this._options.onDevicePermissionDenied?.();
-        this.stopRecording();
+        this.stop();
       }
         break;
       case 'NotFoundError': {
         this._options.onDeviceNotAvailable?.();
-        this.stopRecording();
+        this.stop();
       }
         break;
       default:
@@ -243,11 +193,11 @@ export default class CameraController {
    * @private
    */
   async _makeScreenshot() {
-    if ( !this._isRecording ) {
+    if ( !this._isActive ) {
       return null;
     }
 
-    const canvas = this._createCanvasElement({
+    const canvas = createCanvas({
       width: this._videoBaseElement.videoWidth,
       height: this._videoBaseElement.videoHeight
     });
@@ -266,12 +216,14 @@ export default class CameraController {
   }
 
   /**
+   * @returns {void}
    * @private
    */
   _destroy() {
     this._destroyVideoScreen();
     this._destroyVideoBase();
     this._destroyMediaStream();
+    this._isActive = false;
   }
 
   /**
@@ -327,29 +279,21 @@ export default class CameraController {
    * @returns {void}
    * @public
    */
-  stopRecording() {
+  stop() {
+    const isActive = this._isActive;
+
     this._destroy();
 
-    if ( this._isRecording ) {
+    if ( isActive ) {
       this._options.onRecordingEnd?.();
     }
-
-    this._isRecording = false;
-  }
-
-  showBaseVideoElement() {
-    this._videoBaseElement.style.cssText = '';
-  }
-
-  hideBaseVideoElement() {
-    this._videoBaseElement.style.cssText = this._videoBaseElement.dataset.cssHidden;
   }
 
   /**
    * @returns {Promise<boolean>}
    * @public
    */
-  async startRecording() {
+  async start() {
     if ( !CameraController.isAvailableCameraDevice() ) {
       this._options.onDeviceNotAvailable?.();
       return false;
@@ -365,21 +309,22 @@ export default class CameraController {
       document.body.append(this._videoBaseElement);
 
       // Create ScreenVideo
-      this._videoScreenElement = this._createVideoElement();
+      this._videoScreenElement = createVideo();
 
       if ( this._videoOptions.elementOrSelector ) {
         this.insertVideoScreen(this._videoOptions.elementOrSelector);
       }
 
+      this._isActive = true;
       this._options.onRecordingStart?.();
     }
 
     if ( !this._mediaStream ) {
+      this._isActive = false;
       this._destroy();
     }
 
-    this._isRecording = !!this._mediaStream;
-    return this._isRecording;
+    return this._isActive;
   }
 
   /**
@@ -432,12 +377,30 @@ export default class CameraController {
   }
 
   /**
+   * @returns {void}
+   */
+  showVideoBase() {
+    this._videoBaseElement.style.cssText = this._videoBaseElement.dataset.cssVisible;
+  }
+
+  /**
+   * @returns {void}
+   */
+  hideVideoBase() {
+    this._videoBaseElement.style.cssText = this._videoBaseElement.dataset.cssHidden;
+  }
+
+  /**
    * @param {VideoOptions} [options]
    * @param {HTMLElement|string} elementOrSelector
    * @returns {void}
    * @public
    */
   insertVideoScreen(elementOrSelector, options = {}) {
+    if ( !this._videoScreenElement || !this._mediaStream ) {
+      return;
+    }
+
     this.removeVideoScreen();
 
     const { width, height } = {
@@ -450,7 +413,7 @@ export default class CameraController {
     this._videoScreenElement.height = height;
     this._videoScreenElement.srcObject = this._mediaStream;
 
-    attachElementToDom(this._videoScreenElement, elementOrSelector);
+    insertElementToDOM(this._videoScreenElement, elementOrSelector);
   }
 
   /**
@@ -458,6 +421,10 @@ export default class CameraController {
    * @public
    */
   removeVideoScreen() {
+    if ( !this._videoScreenElement ) {
+      return;
+    }
+
     this._videoScreenElement.srcObject = null;
     if ( this._videoScreenElement.parentElement ) {
       this._videoScreenElement.parentElement.removeChild(this._videoScreenElement);

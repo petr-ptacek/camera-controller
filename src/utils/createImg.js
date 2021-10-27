@@ -1,8 +1,8 @@
 /**
- * @param {string} base64
+ * @param {string} src
  * @returns {Promise<HTMLImageElement>}
  */
-export async function createImgFromBase64(base64) {
+export async function createImg(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const clear = () => {
@@ -20,7 +20,7 @@ export async function createImgFromBase64(base64) {
       reject(e);
     };
 
-    img.src = base64;
+    img.src = src;
 
     if ( img.complete ) {
       clear();

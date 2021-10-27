@@ -45,11 +45,11 @@ const cameraController = new CameraController({
 });
 
 function startCamera() {
-  cameraController.startRecording();
+  cameraController.start();
 }
 
 function stopCamera() {
-  cameraController.stopRecording();
+  cameraController.stop();
   document.getElementById('screenshot-chunk').innerHTML = '';
 }
 

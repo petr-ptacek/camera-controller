@@ -1,6 +1,6 @@
 import { resizeImg }                         from './resizeImg.js';
-import { calculateProportionsByAspectRatio } from './calculateProportionsByAspectRatio';
-import { createImgFromBase64 }               from '@/utils/createImgFromBase64';
+import { calculateProportionsByAspectRatio } from './calculateProportionsByAspectRatio.js';
+import { createImg }                         from './createImg.js';
 
 /**
  * @param {HTMLImageElement|string} imgOrBase64
@@ -15,7 +15,7 @@ export async function resizeImgBasedAspectRatio(imgOrBase64, options = {}) {
   let newHeight = 400;
   const img = imgOrBase64 instanceof HTMLImageElement ?
     imgOrBase64 :
-    await createImgFromBase64(imgOrBase64);
+    await createImg(imgOrBase64);
 
   if ( typeof options.width === 'number' && typeof options.height === 'number' ) {
     newWidth = options.width;
