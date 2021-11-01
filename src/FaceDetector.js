@@ -45,6 +45,14 @@ export class FaceDetector {
   }
 
   /**
+   * @param {HTMLVideoElement} videoInput
+   * @returns {void}
+   */
+  setVideInput(videoInput) {
+    this._videoInput = videoInput;
+  }
+
+  /**
    * @returns {void}
    * @public
    */

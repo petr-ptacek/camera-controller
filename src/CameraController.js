@@ -51,24 +51,22 @@ export default class CameraController {
     };
 
     /**
-     * @type {FaceDetector}
+     * @type {FaceDetector|null}
      * @private
      */
-    this._faceDetector = new FaceDetector({
-      modelsUrl: options.faceDetectOptions.modelsUrl
-    });
+    this._faceDetector = null;
 
     /**
      * @type {HTMLVideoElement}
      * @private
      */
-    this._videoBaseElement = null; //this._createBaseVideoElement();
+    this._videoBaseElement = null;
 
     /**
      * @type {HTMLVideoElement}
      * @private
      */
-    this._videoScreenElement = null; //this._createVideoElement();
+    this._videoScreenElement = null;
 
     /**
      * @type {(MediaStream|null)}
@@ -81,13 +79,6 @@ export default class CameraController {
      * @private
      */
     this._isActive = false;
-  }
-
-  /**
-   * @returns {MediaStream|null}
-   */
-  get mediaStream() {
-    return this._mediaStream;
   }
 
   /**

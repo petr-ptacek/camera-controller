@@ -17,11 +17,11 @@ const cameraController = new CameraController({
     height: 200,
     elementOrSelector: '#video-wrapper'
   },
-  screenshotOptions: {
-    width: 300,
-    height: 300,
-    useAspectRatio: true
-  },
+  // screenshotOptions: {
+  //   width: 300,
+  //   height: 300,
+  //   useAspectRatio: true
+  // },
   onRecordingStart() {
     console.log('Recording start!');
   },

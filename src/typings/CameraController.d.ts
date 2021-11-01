@@ -18,7 +18,7 @@ type FileScreenshotOptions = ScreenshotOptions & { fileName?: string }
 type FaceDetectOptions =
     Pick<FaceDetectorOptions, 'modelsUrl'> &
     {
-      timeout
+      intervalFaceNotDetected
     }
 
 type CameraControllerOptions = {
