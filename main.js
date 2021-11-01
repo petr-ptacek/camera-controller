@@ -9,6 +9,7 @@ const btnScreenshotAsFile = document.getElementById('btn-make-screenshot-file');
 
 const cameraController = new CameraController({
   faceDetectOptions: {
+    timeout: 1000,
     modelsUrl: new window.URL(`${ window.location.origin }/face-api-models`).toString()
   },
   videoOptions: {
