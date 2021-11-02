@@ -27,7 +27,7 @@ export class FaceDetector {
      * @type {HTMLVideoElement}
      * @private
      */
-    this._videoInput = options.videoInput;
+    this._videoInput = options.videoElement;
 
     /**
      * @type {HTMLCanvasElement}
