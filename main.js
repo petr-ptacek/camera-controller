@@ -9,19 +9,11 @@ const btnScreenshotAsFile = document.getElementById('btn-make-screenshot-file');
 
 const cameraController = new CameraController({
   faceDetectOptions: {
-    timeout: 1000,
     modelsUrl: new window.URL(`${ window.location.origin }/face-api-models`).toString()
   },
   videoOptions: {
-    width: 200,
-    height: 200,
     elementOrSelector: '#video-wrapper'
   },
-  // screenshotOptions: {
-  //   width: 300,
-  //   height: 300,
-  //   useAspectRatio: true
-  // },
   onRecordingStart() {
     console.log('Recording start!');
   },
@@ -37,11 +29,13 @@ const cameraController = new CameraController({
   onDevicePermissionDenied() {
     console.log('Device permission denied!');
   },
-  onFaceDetected() {
-
-  },
   onFaceUndetected() {
-
+    console.log('faceUndetected');
+    onFaceUndetectedHandler();
+  },
+  onFaceDetected() {
+    console.log('faceDetected');
+    onFaceDetectedHandler();
   }
 });
 
@@ -52,6 +46,7 @@ function startCamera() {
 function stopCamera() {
   cameraController.stop();
   document.getElementById('screenshot-chunk').innerHTML = '';
+  document.body.style.backgroundColor = '';
 }
 
 async function makeScreenshotImg() {
@@ -61,6 +56,14 @@ async function makeScreenshotImg() {
     document.getElementById('screenshot-chunk').innerHTML = '';
     document.getElementById('screenshot-chunk').append(screenshotImg);
   }
+}
+
+function onFaceDetectedHandler() {
+  document.body.style.backgroundColor = 'green';
+}
+
+function onFaceUndetectedHandler() {
+  document.body.style.backgroundColor = '';
 }
 
 async function makeScreenshotFile() {

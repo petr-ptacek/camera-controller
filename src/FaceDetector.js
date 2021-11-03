@@ -12,6 +12,18 @@ export class FaceDetector {
   constructor(options) {
 
     /**
+     * @type {FaceDetectorOptions}
+     * @private
+     */
+    this._options = options;
+
+    /**
+     * @type {number}
+     * @private
+     */
+    this._faceUndetectedTimeoutMs = this._options?.faceUndetectedTimeoutMs ?? 20000;
+
+    /**
      * @type {string}
      * @private
      */
@@ -33,7 +45,19 @@ export class FaceDetector {
      * @type {HTMLCanvasElement}
      * @private
      */
-    this._canvas = null;
+    this._canvas = this._createHelperCanvas();
+
+    /**
+     * @type {null|number}
+     * @private
+     */
+    this._faceDetectionIntervalId = null;
+
+    /**
+     * @type {Date|null}
+     * @private
+     */
+    this._faceUndetectedDatetime = null;
   }
 
   /**
@@ -45,43 +69,49 @@ export class FaceDetector {
   }
 
   /**
-   * @param {HTMLVideoElement} videoInput
-   * @returns {void}
+   * @returns {{width: number, height: number}}
+   * @private
    */
-  setVideInput(videoInput) {
-    this._videoInput = videoInput;
+  _getVideoDisplaySize() {
+    return {
+      width: this._videoInput.width,
+      height: this._videoInput.height
+    };
   }
 
   /**
-   * @returns {void}
-   * @public
+   * @returns {HTMLCanvasElement}
+   * @private
    */
-  async drawDetectionBox() {
-    const detection = await this._detectSingleFace();
+  _createHelperCanvas() {
+    const canvas = faceapi.createCanvasFromMedia(this._videoInput);
+    canvas.style.position = 'absolute';
+    faceapi.matchDimensions(canvas, this._getVideoDisplaySize());
+    document.body.append(canvas);
+    return canvas;
+  }
 
-    if ( !detection ) {
-      return;
-    }
-
-    if ( !this._canvas ) {
-      this._canvas = faceapi.createCanvasFromMedia(input);
-      this._canvas.style.position = 'absolute';
-      document.body.append(this._canvas);
-    }
-
+  /**
+   * @param {any} detectData
+   * @returns {void}
+   * @private
+   */
+  async _drawDetections(detectData) {
     this._canvas
         .getContext('2d')
         .clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-    faceapi.matchDimensions(this._canvas, { width: this.i });
-    faceapi.draw.drawDetections(this._canvas, faceapi.resizeResults(faceDetection, input));
+    faceapi.draw.drawDetections(
+      this._canvas,
+      faceapi.resizeResults(detectData, this._getVideoDisplaySize())
+    );
   }
 
   /**
    * @returns {Promise<void>}
-   * @public
+   * @private
    */
-  async loadModels() {
+  async _loadModels() {
     const modelsToLoaded = [];
 
     if ( !faceapi.nets.tinyFaceDetector.isLoaded ) {
@@ -94,10 +124,71 @@ export class FaceDetector {
   }
 
   /**
+   * @param {any} detectData
+   * @private
+   */
+  _faceDetectedHandler(detectData) {
+    // this._drawDetections(detectData);
+    this._faceUndetectedDatetime = null;
+    this._options.onFaceDetected?.();
+  }
+
+  _faceUndetectedHandler() {
+    if ( !this._faceUndetectedDatetime ) {
+      this._faceUndetectedDatetime = new Date();
+    }
+
+    if ( (Date.now() - this._faceUndetectedDatetime.getTime()) > this._faceUndetectedTimeoutMs ) {
+      this._options.onFaceUndetected?.();
+      this._faceUndetectedDatetime = null;
+    }
+  }
+
+  /**
+   * @returns {void}
+   * @private
+   */
+  _startFaceDetection() {
+    this._faceDetectionIntervalId = setInterval(
+      async () => {
+        const detectData = await this._detectSingleFace();
+        if ( detectData ) {
+          this._faceDetectedHandler(detectData);
+        } else {
+          this._faceUndetectedHandler();
+        }
+      },
+      1000
+    );
+  }
+
+  /**
+   * @returns {void}
+   * @private
+   */
+  _stopFaceDetection() {
+    clearInterval(this._faceDetectionIntervalId);
+    this._faceDetectionIntervalId = null;
+  }
+
+  /**
+   * @returns {void}
+   * @private
+   */
+  _destroyCanvas() {
+    if ( this._canvas.parentElement ) {
+      this._canvas.parentElement.removeChild(this._canvas);
+    }
+
+    this._canvas = null;
+  }
+
+  /**
    * @returns {void}
    */
   destroy() {
-
+    this._stopFaceDetection();
+    this._destroyCanvas();
   }
 
   /**
@@ -105,7 +196,7 @@ export class FaceDetector {
    * @public
    */
   async init() {
-    const { error } = await execAsync(this.loadModels());
+    const { error } = await execAsync(this._loadModels());
 
     if ( error ) {
       throw new Error('Failed to load face-api models ...');
@@ -113,5 +204,6 @@ export class FaceDetector {
 
 
     this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
+    this._startFaceDetection();
   }
 }

@@ -2,6 +2,7 @@
  * @param {Object?} options
  * @param {number?} options.width
  * @param {number?} options.height
+ * @param {boolean?} options.autoplay
  * @returns {HTMLVideoElement}
  */
 export function createVideo(options = {}) {
@@ -10,7 +11,7 @@ export function createVideo(options = {}) {
    */
   const videoElement = document.createElement('video');
   videoElement.muted = true;
-  videoElement.autoplay = true;
+  videoElement.autoplay = options.autoplay ?? true;
 
   if ( typeof options.width === 'number' && typeof options.height === 'number' ) {
     videoElement.width = options.width;

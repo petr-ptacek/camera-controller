@@ -3,6 +3,7 @@
  * @typedef {import('@/typings').VideoOptions} VideoOptions
  * @typedef {import('@/typings').ScreenshotOptions} ScreenshotOptions
  * @typedef {import('@/typings').FileScreenshotOptions} FileScreenshotOptions
+ * @typedef {import('@/typings').FaceDetectOptions} FaceDetectOptions
  * @typedef {import('@/typings').CanvasOptions} CanvasOptions
  */
 
@@ -51,6 +52,15 @@ export default class CameraController {
     };
 
     /**
+     * @type {FaceDetectOptions}
+     * @private
+     */
+    this._faceDetectOptions = {
+      faceUndetectedTimeoutMs: 20000,
+      ...(options.faceDetectOptions ?? {})
+    };
+
+    /**
      * @type {FaceDetector|null}
      * @private
      */
@@ -82,13 +92,6 @@ export default class CameraController {
   }
 
   /**
-   * @returns {MediaStream|null}
-   */
-  getMediaStream() {
-    return this._mediaStream?.clone() ?? null;
-  }
-
-  /**
    * @returns {boolean}
    */
   isActive() {
@@ -111,20 +114,21 @@ export default class CameraController {
    * @private
    */
   _createBaseVideoElement() {
-    const videoElement = createVideo();
+    const videoElement = createVideo({ autoplay: false });
     videoElement.dataset.cssVisible = '';
     videoElement.dataset.cssHidden = 'position:fixed;top:0;left:0;z-index:-10000;opacity:0;';
     videoElement.style.cssText = videoElement.dataset.cssHidden;
+
     return videoElement;
   }
 
-  showBaseVideoElement() {
-    this._videoBaseElement.style.cssText = '';
-  }
-
-  hideBaseVideoElement() {
-    this._videoBaseElement.style.cssText = this._videoBaseElement.dataset.cssHidden;
-  }
+  // showBaseVideoElement() {
+  //   this._videoBaseElement.style.cssText = '';
+  // }
+  //
+  // hideBaseVideoElement() {
+  //   this._videoBaseElement.style.cssText = this._videoBaseElement.dataset.cssHidden;
+  // }
 
   /**
    * @returns {Promise<MediaStream|null>}
@@ -214,6 +218,7 @@ export default class CameraController {
     this._destroyVideoScreen();
     this._destroyVideoBase();
     this._destroyMediaStream();
+    this._destroyFaceDetector();
     this._isActive = false;
   }
 
@@ -268,6 +273,41 @@ export default class CameraController {
 
   /**
    * @returns {void}
+   * @private
+   */
+  _destroyFaceDetector() {
+    if ( !this._faceDetector ) {
+      return;
+    }
+
+    this._faceDetector.destroy();
+    this._faceDetector = null;
+  }
+
+  /**
+   * @returns {Promise<FaceDetector>}
+   * @private
+   */
+  async _createFaceDetector() {
+    const faceDetector = new FaceDetector({
+      videoElement: this._videoBaseElement,
+      faceUndetectedTimeoutMs: this._faceDetectOptions.faceUndetectedTimeoutMs,
+      modelsUrl: this._faceDetectOptions.modelsUrl,
+      onFaceUndetected: () => {
+        this._options.onFaceUndetected?.();
+      },
+      onFaceDetected: () => {
+        this._options.onFaceDetected?.();
+      }
+    });
+
+    await faceDetector.init();
+
+    return faceDetector;
+  }
+
+  /**
+   * @returns {void}
    * @public
    */
   stop() {
@@ -298,6 +338,10 @@ export default class CameraController {
       this._videoBaseElement = this._createBaseVideoElement();
       this._videoBaseElement.srcObject = this._mediaStream;
       document.body.append(this._videoBaseElement);
+      await this._videoBaseElement.play();
+
+      // Create FaceDetector
+      this._faceDetector = await this._createFaceDetector();
 
       // Create ScreenVideo
       this._videoScreenElement = createVideo();

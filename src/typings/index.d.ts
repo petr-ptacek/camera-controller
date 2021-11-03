@@ -2,7 +2,8 @@ export {
   CameraControllerOptions,
   VideoOptions,
   ScreenshotOptions,
-  FileScreenshotOptions
+  FileScreenshotOptions,
+  FaceDetectOptions
 } from './CameraController';
 
 export {
