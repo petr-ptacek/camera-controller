@@ -1,0 +1,59 @@
+*, *::after, *::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit;
+}
+
+html {
+  font-size: 62.5%;
+  font-family: sans-serif;
+}
+
+body {
+  box-sizing: border-box;
+}
+
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  width: 100vw;
+  height: 100vh;
+
+  display: grid;
+  grid-template-rows: max-content 1fr;
+  grid-template-columns: 1fr;
+}
+
+.buttons-wrapper {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.buttons-wrapper > *:not(:last-child) {
+  margin-right: 1rem;
+}
+
+.btn {
+  padding: 2rem;
+  border: 1px solid black;
+  border-radius: 4px;
+  text-transform: uppercase;
+  background-color: orangered;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+#video-wrapper {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+}
+
+#video-wrapper video {
+  /*display: block;*/
+}
