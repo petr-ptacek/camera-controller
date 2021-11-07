@@ -2,6 +2,16 @@
  * @typedef {import('@/typings').FaceDetectorOptions} FaceDetectorOptions
  */
 
+// import {
+//   createCanvasFromMedia,
+//   matchDimensions,
+//   draw,
+//   detectSingleFace,
+//   resizeResults,
+//   TinyFaceDetectorOptions,
+//   nets
+// }                    from 'face-api.js/build/es6';
+import * as faceapi  from 'face-api.js';
 import { execAsync } from '@/utils/execAsync';
 
 export class FaceDetector {
@@ -61,11 +71,12 @@ export class FaceDetector {
   }
 
   /**
-   * @returns {DetectSingleFaceTask}
+   * @returns {Promise<import('face-api.js').FaceDetection | undefined>}
    * @private
    */
   async _detectSingleFace() {
-    return await faceapi.detectSingleFace(this._videoInput, this._tinyFaceDetectorOptions);
+    const detectSingleFaceTask = faceapi.detectSingleFace(this._videoInput, this._tinyFaceDetectorOptions);
+    return await detectSingleFaceTask.run();
   }
 
   /**
@@ -201,7 +212,6 @@ export class FaceDetector {
     if ( error ) {
       throw new Error('Failed to load face-api models ...');
     }
-
 
     this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
     this._startFaceDetection();

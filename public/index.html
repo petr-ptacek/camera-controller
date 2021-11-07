@@ -1,33 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8" />
-	<link rel="icon"
-	      type="image/svg+xml"
-	      href="favicon.svg" />
-	<meta name="viewport"
-	      content="width=device-width, initial-scale=1.0" />
-	<title>Vite App</title>
-	<link rel="stylesheet" href="/style.css">
-	<script src="face-api.min.js"></script>
-	<script src="CameraController.umd.js"></script>
+  <meta charset="UTF-8" />
+  <link rel="icon"
+        type="image/svg+xml"
+        href="favicon.svg" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0" />
+  <title>Vite App</title>
+  <script src="camera-controller.umd.js"></script>
 </head>
 <body>
-	<div id="app">
-		<div class="buttons-wrapper">
-			<button class="btn" id="btn-camera-on">Camera On</button>
-			<button class="btn" id="btn-camera-off">Camera Off</button>
-			<button class="btn" id="btn-make-screenshot-base64">Screenshot As Base64</button>
-			<button class="btn" id="btn-make-screenshot-img">Screenshot As Img</button>
-			<button class="btn" id="btn-make-screenshot-file">Screenshot As File</button>
-		</div>
+  <div id="app">
+    <div class="buttons-wrapper">
+      <button class="btn" id="btn-camera-on">Camera On</button>
+      <button class="btn" id="btn-camera-off">Camera Off</button>
+      <button class="btn" id="btn-make-screenshot-base64">Screenshot As Base64</button>
+      <button class="btn" id="btn-make-screenshot-img">Screenshot As Img</button>
+      <button class="btn" id="btn-make-screenshot-file">Screenshot As File</button>
+    </div>
 
-		<div class="content">
-			<div id="video-wrapper"></div>
-			<div id="screenshot-chunk"></div>
-		</div>
-	</div>
-	<script type="module"
-	        src="main.js"></script>
+    <div class="content">
+      <div id="video-wrapper"></div>
+      <div id="screenshot-chunk"></div>
+    </div>
+  </div>
 </body>
 </html>

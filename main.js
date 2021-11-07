@@ -50,12 +50,19 @@ function stopCamera() {
 }
 
 async function makeScreenshotImg() {
-  const screenshotImg = await cameraController.getScreenshotAsImg();
+  // const screenshotImg = await cameraController.getScreenshotAsImg();
+  //
+  // if ( screenshotImg ) {
+  //   document.getElementById('screenshot-chunk').innerHTML = '';
+  //   document.getElementById('screenshot-chunk').append(screenshotImg);
+  // }
 
-  if ( screenshotImg ) {
-    document.getElementById('screenshot-chunk').innerHTML = '';
-    document.getElementById('screenshot-chunk').append(screenshotImg);
-  }
+  cameraController.getScreenshotAsImg(screenshotImg => {
+    if ( screenshotImg ) {
+      document.getElementById('screenshot-chunk').innerHTML = '';
+      document.getElementById('screenshot-chunk').append(screenshotImg);
+    }
+  });
 }
 
 function onFaceDetectedHandler() {
@@ -63,24 +70,40 @@ function onFaceDetectedHandler() {
 }
 
 function onFaceUndetectedHandler() {
-  document.body.style.backgroundColor = '';
+  document.body.style.removeProperty('background-color');
 }
 
 async function makeScreenshotFile() {
-  const file = await cameraController.getScreenshotAsFile();
-  console.dir(file);
+  // const file = await cameraController.getScreenshotAsFile();
+  // console.dir(file);
+
+  cameraController.getScreenshotAsFile(
+    (file) => {
+      console.dir(file);
+    }
+  );
 }
 
 async function makeScreenshotBase64() {
-  const screenshotBase64 = await cameraController.getScreenshotAsBase64();
+  // const screenshotBase64 = await cameraController.getScreenshotAsBase64();
+  //
+  // if ( screenshotBase64 ) {
+  //   const img = new Image();
+  //   img.src = screenshotBase64;
+  //
+  //   document.getElementById('screenshot-chunk').innerHTML = '';
+  //   document.getElementById('screenshot-chunk').append(img);
+  // }
 
-  if ( screenshotBase64 ) {
-    const img = new Image();
-    img.src = screenshotBase64;
+  cameraController.getScreenshotAsBase64(screenshotBase64 => {
+    if ( screenshotBase64 ) {
+      const img = new Image();
+      img.src = screenshotBase64;
 
-    document.getElementById('screenshot-chunk').innerHTML = '';
-    document.getElementById('screenshot-chunk').append(img);
-  }
+      document.getElementById('screenshot-chunk').innerHTML = '';
+      document.getElementById('screenshot-chunk').append(img);
+    }
+  });
 }
 
 btnCameraOn.addEventListener('click', startCamera);

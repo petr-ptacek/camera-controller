@@ -5,6 +5,10 @@
  * @typedef {import('@/typings').FileScreenshotOptions} FileScreenshotOptions
  * @typedef {import('@/typings').FaceDetectOptions} FaceDetectOptions
  * @typedef {import('@/typings').CanvasOptions} CanvasOptions
+ * @typedef {import('@/typings').CallbackHandler} CallbackHandler
+ * @typedef {import('@/typings').CallbackScreenshotBase64Handler} CallbackScreenshotBase64Handler
+ * @typedef {import('@/typings').CallbackScreenshotImgHandler} CallbackScreenshotImgHandler
+ * @typedef {import('@/typings').CallbackScreenshotFileHandler} CallbackScreenshotFileHandler
  */
 
 import { FaceDetector } from '@/FaceDetector';
@@ -14,7 +18,8 @@ import {
   base64ToBlob,
   resizeImg,
   resizeImgBasedAspectRatio,
-  insertElementToDOM, createVideo
+  insertElementToDOM,
+  createVideo
 }                       from '@/utils';
 
 export default class CameraController {
@@ -321,10 +326,11 @@ export default class CameraController {
   }
 
   /**
+   * @param {CallbackHandler?} cb
    * @returns {Promise<boolean>}
    * @public
    */
-  async start() {
+  async start(cb) {
     if ( !CameraController.isAvailableCameraDevice() ) {
       this._options.onDeviceNotAvailable?.();
       return false;
@@ -351,6 +357,7 @@ export default class CameraController {
       }
 
       this._isActive = true;
+      cb?.();
       this._options.onRecordingStart?.();
     }
 
@@ -363,23 +370,28 @@ export default class CameraController {
   }
 
   /**
+   * @param {CallbackScreenshotBase64Handler} [cb]
    * @param {ScreenshotOptions} [options]
    * @returns {Promise<string|null>}
    * @public
    */
-  async getScreenshotAsBase64(options = {}) {
-    return (await this.getScreenshotAsImg(options))?.src ?? null;
+  async getScreenshotAsBase64(cb, options = {}) {
+    const base64 = (await this.getScreenshotAsImg(undefined, options))?.src ?? null;
+    cb?.(base64);
+    return base64;
   }
 
   /**
+   * @param {CallbackScreenshotImgHandler} [cb]
    * @param {ScreenshotOptions} [options]
    * @returns {Promise<HTMLImageElement|null>}
    * @public
    */
-  async getScreenshotAsImg(options = {}) {
+  async getScreenshotAsImg(cb, options = {}) {
     const videoScreenshotBase64 = await this._makeScreenshot();
 
     if ( !videoScreenshotBase64 ) {
+      cb?.(null);
       return null;
     }
 
@@ -390,25 +402,33 @@ export default class CameraController {
       ...options
     };
 
-    return _options.useAspectRatio ?
+    const img = _options.useAspectRatio ?
       await resizeImgBasedAspectRatio(videoScreenshotBase64, _options) :
       await resizeImg(videoScreenshotBase64, _options);
+
+    cb?.(img);
+    return img;
   }
 
   /**
+   * @param {CallbackScreenshotFileHandler} [cb]
    * @param {FileScreenshotOptions} [options]
    * @returns {Promise<File|null>}
    * @public
    */
-  async getScreenshotAsFile(options) {
+  async getScreenshotAsFile(cb, options) {
     const base64 = await this.getScreenshotAsBase64(options);
 
     if ( !base64 ) {
+      cb?.(null);
       return null;
     }
 
     const blob = await base64ToBlob(base64);
-    return blobToFile(blob, { fileName: `${ Date.now() }` });
+    const file = blobToFile(blob, { fileName: `${ Date.now() }` });
+
+    cb?.(file);
+    return file;
   }
 
   /**

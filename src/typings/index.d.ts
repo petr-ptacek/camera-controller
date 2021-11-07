@@ -13,3 +13,10 @@ export {
 export {
   CanvasOptions
 } from './CanvasOptions';
+
+export {
+  CallbackHandler,
+  CallbackScreenshotBase64Handler,
+  CallbackScreenshotImgHandler,
+  CallbackScreenshotFileHandler
+} from './shared';
