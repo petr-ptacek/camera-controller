@@ -15,7 +15,7 @@ export {
 } from './CanvasOptions';
 
 export {
-  CallbackHandler,
+  CallbackStartHandler,
   CallbackScreenshotBase64Handler,
   CallbackScreenshotImgHandler,
   CallbackScreenshotFileHandler

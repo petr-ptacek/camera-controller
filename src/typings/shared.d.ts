@@ -1,4 +1,4 @@
-export type CallbackHandler = () => void;
+export type CallbackStartHandler = (success: boolean) => void;
 
 export type CallbackScreenshotBase64Handler = (base64: string | null) => void;
 

@@ -5,7 +5,7 @@
  * @typedef {import('@/typings').FileScreenshotOptions} FileScreenshotOptions
  * @typedef {import('@/typings').FaceDetectOptions} FaceDetectOptions
  * @typedef {import('@/typings').CanvasOptions} CanvasOptions
- * @typedef {import('@/typings').CallbackHandler} CallbackHandler
+ * @typedef {import('@/typings').CallbackStartHandler} CallbackStartHandler
  * @typedef {import('@/typings').CallbackScreenshotBase64Handler} CallbackScreenshotBase64Handler
  * @typedef {import('@/typings').CallbackScreenshotImgHandler} CallbackScreenshotImgHandler
  * @typedef {import('@/typings').CallbackScreenshotFileHandler} CallbackScreenshotFileHandler
@@ -326,13 +326,14 @@ export default class CameraController {
   }
 
   /**
-   * @param {CallbackHandler?} cb
+   * @param {CallbackStartHandler?} cb
    * @returns {Promise<boolean>}
    * @public
    */
   async start(cb) {
     if ( !CameraController.isAvailableCameraDevice() ) {
       this._options.onDeviceNotAvailable?.();
+      cb?.(false);
       return false;
     }
 
@@ -357,13 +358,14 @@ export default class CameraController {
       }
 
       this._isActive = true;
-      cb?.();
+      cb?.(true);
       this._options.onRecordingStart?.();
     }
 
     if ( !this._mediaStream ) {
       this._isActive = false;
       this._destroy();
+      cb?.(false);
     }
 
     return this._isActive;
