@@ -13,6 +13,7 @@
 // }                    from 'face-api.js/build/es6';
 import * as faceapi  from 'face-api.js';
 import { execAsync } from '@/utils/execAsync';
+import as            from '../dist/camera-controller.es';
 
 export class FaceDetector {
 
@@ -153,26 +154,31 @@ export class FaceDetector {
       this._faceUndetectedDatetime = new Date();
     }
 
-    if ( (Date.now() - this._faceUndetectedDatetime.getTime()) > this._faceUndetectedTimeoutMs ) {
+    const timeout = (Date.now() - this._faceUndetectedDatetime.getTime());
+    console.log(`faceUndetected timeout: ${ timeout }`);
+    if ( timeout > this._faceUndetectedTimeoutMs ) {
       this._options.onFaceUndetected?.();
       this._faceUndetectedDatetime = null;
     }
   }
 
   /**
-   * @returns {void}
+   * @returns {Promise<void>}
    * @private
    */
-  _startFaceDetection() {
+  async _startFaceDetection() {
+    const handler = async () => {
+      const detectData = await this._detectSingleFace();
+      if ( detectData ) {
+        this._faceDetectedHandler(detectData);
+      } else {
+        this._faceUndetectedHandler();
+      }
+    };
+
+    await handler();
     this._faceDetectionIntervalId = setInterval(
-      async () => {
-        const detectData = await this._detectSingleFace();
-        if ( detectData ) {
-          this._faceDetectedHandler(detectData);
-        } else {
-          this._faceUndetectedHandler();
-        }
-      },
+      handler,
       1000
     );
   }
@@ -218,6 +224,6 @@ export class FaceDetector {
     }
 
     this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
-    this._startFaceDetection();
+    await this._startFaceDetection();
   }
 }
