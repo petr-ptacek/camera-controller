@@ -16,8 +16,8 @@ type ScreenshotOptions = {
 type FileScreenshotOptions = ScreenshotOptions & { fileName?: string }
 
 type FaceDetectOptions =
-    Pick<FaceDetectorOptions, 'modelsUrl'> &
-    Partial<Pick<FaceDetectorOptions, 'faceUndetectedTimeoutMs'>>
+  Pick<FaceDetectorOptions, 'modelsUrl'> &
+  Partial<Pick<FaceDetectorOptions, 'faceUndetectedTimeoutMs'>>
 
 type CameraControllerOptions = {
   videoOptions?: VideoOptions;
@@ -29,6 +29,7 @@ type CameraControllerOptions = {
   onRecordingInterrupted?: () => void;
   onDeviceNotAvailable?: () => void;
   onDevicePermissionDenied?: () => void;
+  onDeviceNotReadable?: () => void;
 
   onFaceDetected?: () => void;
   onFaceUndetected?: () => void;

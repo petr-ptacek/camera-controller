@@ -183,7 +183,13 @@ export default class CameraController {
         this.stop();
       }
         break;
+      case 'NotReadableError': {
+        this._options.onDeviceNotReadable?.();
+        this.stop();
+      }
+        break;
       default:
+        this.stop();
         console.log(error);
     }
   }

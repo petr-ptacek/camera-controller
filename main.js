@@ -29,6 +29,9 @@ const cameraController = new CameraController({
   onDevicePermissionDenied() {
     console.log('Device permission denied!');
   },
+  onDeviceNotReadable() {
+    console.log('Device not readable!');
+  },
   onFaceUndetected() {
     console.log('faceUndetected');
     onFaceUndetectedHandler();
