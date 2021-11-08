@@ -144,6 +144,10 @@ export class FaceDetector {
     this._options.onFaceDetected?.();
   }
 
+  /**
+   * @returns {void}
+   * @private
+   */
   _faceUndetectedHandler() {
     if ( !this._faceUndetectedDatetime ) {
       this._faceUndetectedDatetime = new Date();

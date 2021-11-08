@@ -18595,6 +18595,7 @@ class CameraController {
     var _a2, _b, _c2, _d;
     if (!CameraController.isAvailableCameraDevice()) {
       (_b = (_a2 = this._options).onDeviceNotAvailable) == null ? void 0 : _b.call(_a2);
+      cb == null ? void 0 : cb(false);
       return false;
     }
     this._mediaStream = await this._createMediaStream();
@@ -18609,12 +18610,13 @@ class CameraController {
         this.insertVideoScreen(this._videoOptions.elementOrSelector);
       }
       this._isActive = true;
-      cb == null ? void 0 : cb();
+      cb == null ? void 0 : cb(true);
       (_d = (_c2 = this._options).onRecordingStart) == null ? void 0 : _d.call(_c2);
     }
     if (!this._mediaStream) {
       this._isActive = false;
       this._destroy();
+      cb == null ? void 0 : cb(false);
     }
     return this._isActive;
   }
