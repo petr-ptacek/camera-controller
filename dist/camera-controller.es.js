@@ -18279,20 +18279,24 @@ class FaceDetector {
     if (!this._faceUndetectedDatetime) {
       this._faceUndetectedDatetime = new Date();
     }
-    if (Date.now() - this._faceUndetectedDatetime.getTime() > this._faceUndetectedTimeoutMs) {
+    const timeout = Date.now() - this._faceUndetectedDatetime.getTime();
+    console.log(`faceUndetected timeout: ${timeout}`);
+    if (timeout > this._faceUndetectedTimeoutMs) {
       (_b = (_a2 = this._options).onFaceUndetected) == null ? void 0 : _b.call(_a2);
       this._faceUndetectedDatetime = null;
     }
   }
-  _startFaceDetection() {
-    this._faceDetectionIntervalId = setInterval(async () => {
+  async _startFaceDetection() {
+    const handler = async () => {
       const detectData = await this._detectSingleFace();
       if (detectData) {
         this._faceDetectedHandler(detectData);
       } else {
         this._faceUndetectedHandler();
       }
-    }, 1e3);
+    };
+    await handler();
+    this._faceDetectionIntervalId = setInterval(handler, 1e3);
   }
   _stopFaceDetection() {
     clearInterval(this._faceDetectionIntervalId);
@@ -18314,7 +18318,7 @@ class FaceDetector {
       throw new Error("Failed to load face-api models ...");
     }
     this._tinyFaceDetectorOptions = new TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
-    this._startFaceDetection();
+    await this._startFaceDetection();
   }
 }
 function insertElementToDOM(element, elementOrSelector) {
@@ -18493,7 +18497,7 @@ class CameraController {
     return mediaStream;
   }
   _createMediaStreamErrorHandler(error) {
-    var _a2, _b, _c2, _d;
+    var _a2, _b, _c2, _d, _e2, _f2;
     switch (error.name) {
       case "NotAllowedError":
         {
@@ -18507,7 +18511,14 @@ class CameraController {
           this.stop();
         }
         break;
+      case "NotReadableError":
+        {
+          (_f2 = (_e2 = this._options).onDeviceNotReadable) == null ? void 0 : _f2.call(_e2);
+          this.stop();
+        }
+        break;
       default:
+        this.stop();
         console.log(error);
     }
   }

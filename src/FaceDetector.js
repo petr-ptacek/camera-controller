@@ -13,7 +13,6 @@
 // }                    from 'face-api.js/build/es6';
 import * as faceapi  from 'face-api.js';
 import { execAsync } from '@/utils/execAsync';
-import as            from '../dist/camera-controller.es';
 
 export class FaceDetector {
 
