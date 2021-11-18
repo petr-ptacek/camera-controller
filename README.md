@@ -58,7 +58,7 @@ const cameraController = new CameraController({
 
 ## Static Methods
 
-* `CameraController.isAvailableCameraDevice(): boolean`
+* `CameraController.isAvailableCameraDevice(cb?: (available: boolean): void): Promise<boolean>`
   * for checking if the user has camera device and the browser support it
 
 ## Public Methods

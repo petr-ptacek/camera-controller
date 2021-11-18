@@ -18463,8 +18463,13 @@ class CameraController {
   isActive() {
     return this._isActive;
   }
-  static isAvailableCameraDevice() {
-    return "mediaDevices" in navigator && "getUserMedia" in navigator.mediaDevices;
+  static async isAvailableCameraDevice(cb) {
+    const isAvailableApi = "mediaDevices" in navigator && "getUserMedia" in navigator.mediaDevices && "enumerateDevices" in navigator.mediaDevices;
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const isAvailableVideoInput = !!devices.find((device) => device.kind === "videoinput");
+    const isAvailable = isAvailableApi && isAvailableVideoInput;
+    cb == null ? void 0 : cb(isAvailable);
+    return isAvailable;
   }
   _createBaseVideoElement() {
     const videoElement = createVideo({ autoplay: false });
@@ -18604,7 +18609,7 @@ class CameraController {
   }
   async start(cb) {
     var _a2, _b, _c2, _d;
-    if (!CameraController.isAvailableCameraDevice()) {
+    if (!await CameraController.isAvailableCameraDevice()) {
       (_b = (_a2 = this._options).onDeviceNotAvailable) == null ? void 0 : _b.call(_a2);
       cb == null ? void 0 : cb(false);
       return false;

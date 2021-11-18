@@ -104,14 +104,24 @@ export default class CameraController {
   }
 
   /**
-   * @returns {boolean}
+   * @param {function(available: boolean):void?} [cb]
+   * @returns {Promise<boolean>}
    * @static
    */
-  static isAvailableCameraDevice() {
-    return (
+  static async isAvailableCameraDevice(cb) {
+    const isAvailableApi = (
       'mediaDevices' in navigator &&
-      'getUserMedia' in navigator.mediaDevices
+      'getUserMedia' in navigator.mediaDevices &&
+      'enumerateDevices' in navigator.mediaDevices
     );
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const isAvailableVideoInput = !!devices.find(device => device.kind === 'videoinput');
+
+    const isAvailable = isAvailableApi && isAvailableVideoInput;
+
+    cb?.(isAvailable);
+    return isAvailable;
   }
 
   /**
@@ -337,7 +347,7 @@ export default class CameraController {
    * @public
    */
   async start(cb) {
-    if ( !CameraController.isAvailableCameraDevice() ) {
+    if ( !await CameraController.isAvailableCameraDevice() ) {
       this._options.onDeviceNotAvailable?.();
       cb?.(false);
       return false;
