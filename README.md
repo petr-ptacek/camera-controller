@@ -61,6 +61,12 @@ const cameraController = new CameraController({
 * `CameraController.isAvailableCameraDevice(cb?: (available: boolean): void): Promise<boolean>`
   * for checking if the user has camera device and the browser support it
 
+* `CameraController.isAccessPermissionGranted(cb?: (granted: boolean): void): Promise<boolean>`
+  * check if the camera has granted access permission fot that domain
+
+* `CameraController.isSupportedCameraApi(): boolean`
+  * check if the browser supports the camera API
+
 ## Public Methods
 
 * `isActive(): boolean`

@@ -6,6 +6,7 @@ const btnCameraOff = document.getElementById('btn-camera-off');
 const btnScreenshotAsBase64 = document.getElementById('btn-make-screenshot-base64');
 const btnScreenshotAsImg = document.getElementById('btn-make-screenshot-img');
 const btnScreenshotAsFile = document.getElementById('btn-make-screenshot-file');
+const btnCheckCameraPermission = document.getElementById('btn-is-enabled-camera-permission');
 
 const cameraController = new CameraController({
   faceDetectOptions: {
@@ -109,6 +110,12 @@ async function makeScreenshotBase64() {
   });
 }
 
+async function checkCameraAccessPermission() {
+  const granted = await CameraController.isAccessPermissionGranted(null);
+  console.log(`CameraAccessPermission: ${ granted }`);
+}
+
+btnCheckCameraPermission.addEventListener('click', checkCameraAccessPermission);
 btnCameraOn.addEventListener('click', startCamera);
 btnCameraOff.addEventListener('click', stopCamera);
 btnScreenshotAsBase64.addEventListener('click', makeScreenshotBase64);

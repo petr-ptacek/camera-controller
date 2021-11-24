@@ -106,19 +106,52 @@ export default class CameraController {
   /**
    * @param {function(available: boolean):void?} [cb]
    * @returns {Promise<boolean>}
+   */
+  static async isAccessPermissionGranted(cb) {
+    if ( !CameraController.isSupportedCameraApi() ) {
+      cb?.(false);
+      return false;
+    }
+
+    const devices = await window.navigator.mediaDevices.enumerateDevices();
+    const videoInputDevices = devices.filter(device => device.kind === 'videoinput');
+    let isGranted = false;
+
+    for ( const videoInputDevice of videoInputDevices ) {
+      if ( !!videoInputDevice.label ) {
+        isGranted = true;
+        break;
+      }
+    }
+
+    cb?.(isGranted);
+    return isGranted;
+  }
+
+  /**
+   * @returns {boolean}
    * @static
    */
-  static async isAvailableCameraDevice(cb) {
-    const isAvailableApi = (
+  static isSupportedCameraApi() {
+    return (
       'mediaDevices' in navigator &&
       'getUserMedia' in navigator.mediaDevices &&
       'enumerateDevices' in navigator.mediaDevices
     );
+  }
+
+  /**
+   * @param {function(available: boolean):void?} [cb]
+   * @returns {Promise<boolean>}
+   * @static
+   */
+  static async isAvailableCameraDevice(cb) {
+    const isSupportedApi = CameraController.isSupportedCameraApi();
 
     const devices = await navigator.mediaDevices.enumerateDevices();
     const isAvailableVideoInput = !!devices.find(device => device.kind === 'videoinput');
 
-    const isAvailable = isAvailableApi && isAvailableVideoInput;
+    const isAvailable = isSupportedApi && isAvailableVideoInput;
 
     cb?.(isAvailable);
     return isAvailable;
