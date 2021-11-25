@@ -7,10 +7,13 @@ const btnScreenshotAsBase64 = document.getElementById('btn-make-screenshot-base6
 const btnScreenshotAsImg = document.getElementById('btn-make-screenshot-img');
 const btnScreenshotAsFile = document.getElementById('btn-make-screenshot-file');
 const btnCheckCameraPermission = document.getElementById('btn-is-enabled-camera-permission');
+const btnFDActivate = document.getElementById('btn-activate-face-detection');
+const btnFDDeactivate = document.getElementById('btn-deactivate-face-detection');
 
 const cameraController = new CameraController({
   faceDetectOptions: {
-    modelsUrl: new window.URL(`${ window.location.origin }/face-api-models`).toString()
+    modelsUrl: new window.URL(`${ window.location.origin }/face-api-models`).toString(),
+    activate: false
   },
   videoOptions: {
     elementOrSelector: '#video-wrapper'
@@ -50,23 +53,16 @@ function startCamera() {
 function stopCamera() {
   cameraController.stop();
   document.getElementById('screenshot-chunk').innerHTML = '';
-  document.body.style.backgroundColor = '';
+  document.body.style.removeProperty('background-color');
 }
 
 async function makeScreenshotImg() {
-  // const screenshotImg = await cameraController.getScreenshotAsImg();
-  //
-  // if ( screenshotImg ) {
-  //   document.getElementById('screenshot-chunk').innerHTML = '';
-  //   document.getElementById('screenshot-chunk').append(screenshotImg);
-  // }
+  const screenshotImg = await cameraController.getScreenshotAsImg();
 
-  cameraController.getScreenshotAsImg(screenshotImg => {
-    if ( screenshotImg ) {
-      document.getElementById('screenshot-chunk').innerHTML = '';
-      document.getElementById('screenshot-chunk').append(screenshotImg);
-    }
-  });
+  if ( screenshotImg ) {
+    document.getElementById('screenshot-chunk').innerHTML = '';
+    document.getElementById('screenshot-chunk').append(screenshotImg);
+  }
 }
 
 function onFaceDetectedHandler() {
@@ -78,36 +74,20 @@ function onFaceUndetectedHandler() {
 }
 
 async function makeScreenshotFile() {
-  // const file = await cameraController.getScreenshotAsFile();
-  // console.dir(file);
-
-  cameraController.getScreenshotAsFile(
-    (file) => {
-      console.dir(file);
-    }
-  );
+  const file = await cameraController.getScreenshotAsFile();
+  console.dir(file);
 }
 
 async function makeScreenshotBase64() {
-  // const screenshotBase64 = await cameraController.getScreenshotAsBase64();
-  //
-  // if ( screenshotBase64 ) {
-  //   const img = new Image();
-  //   img.src = screenshotBase64;
-  //
-  //   document.getElementById('screenshot-chunk').innerHTML = '';
-  //   document.getElementById('screenshot-chunk').append(img);
-  // }
+  const screenshotBase64 = await cameraController.getScreenshotAsBase64();
 
-  cameraController.getScreenshotAsBase64(screenshotBase64 => {
-    if ( screenshotBase64 ) {
-      const img = new Image();
-      img.src = screenshotBase64;
+  if ( screenshotBase64 ) {
+    const img = new Image();
+    img.src = screenshotBase64;
 
-      document.getElementById('screenshot-chunk').innerHTML = '';
-      document.getElementById('screenshot-chunk').append(img);
-    }
-  });
+    document.getElementById('screenshot-chunk').innerHTML = '';
+    document.getElementById('screenshot-chunk').append(img);
+  }
 }
 
 async function checkCameraAccessPermission() {
@@ -115,9 +95,28 @@ async function checkCameraAccessPermission() {
   console.log(`CameraAccessPermission: ${ granted }`);
 }
 
+async function activateFaceDetection() {
+  if ( !cameraController ) {
+    return;
+  }
+
+  await cameraController.activateFaceDetection();
+}
+
+function deactivateFaceDetection() {
+  if ( !cameraController ) {
+    return;
+  }
+
+  cameraController.deactivateFaceDetection();
+  onFaceUndetectedHandler();
+}
+
+btnFDActivate.addEventListener('click', activateFaceDetection);
+btnFDDeactivate.addEventListener('click', deactivateFaceDetection);
 btnCheckCameraPermission.addEventListener('click', checkCameraAccessPermission);
 btnCameraOn.addEventListener('click', startCamera);
 btnCameraOff.addEventListener('click', stopCamera);
 btnScreenshotAsBase64.addEventListener('click', makeScreenshotBase64);
-btnScreenshotAsImg.addEventListener('click', makeScreenshotImg);
-btnScreenshotAsFile.addEventListener('click', makeScreenshotFile);
+// btnScreenshotAsImg.addEventListener('click', makeScreenshotImg);
+// btnScreenshotAsFile.addEventListener('click', makeScreenshotFile);

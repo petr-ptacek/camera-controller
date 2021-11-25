@@ -18286,7 +18286,20 @@ class FaceDetector {
       this._faceUndetectedDatetime = null;
     }
   }
-  async _startFaceDetection() {
+  _destroyCanvas() {
+    if (this._canvas.parentElement) {
+      this._canvas.parentElement.removeChild(this._canvas);
+    }
+    this._canvas = null;
+  }
+  destroy() {
+    this.deactivate();
+    this._destroyCanvas();
+  }
+  async activate() {
+    if (this.isActive()) {
+      return;
+    }
     const handler = async () => {
       const detectData = await this._detectSingleFace();
       if (detectData) {
@@ -18298,27 +18311,24 @@ class FaceDetector {
     await handler();
     this._faceDetectionIntervalId = setInterval(handler, 1e3);
   }
-  _stopFaceDetection() {
+  deactivate() {
     clearInterval(this._faceDetectionIntervalId);
     this._faceDetectionIntervalId = null;
+    this._faceUndetectedDatetime = null;
   }
-  _destroyCanvas() {
-    if (this._canvas.parentElement) {
-      this._canvas.parentElement.removeChild(this._canvas);
-    }
-    this._canvas = null;
-  }
-  destroy() {
-    this._stopFaceDetection();
-    this._destroyCanvas();
+  isActive() {
+    return this._faceDetectionIntervalId !== null;
   }
   async init() {
+    var _a2;
     const { error } = await execAsync(this._loadModels());
     if (error) {
       throw new Error("Failed to load face-api models ...");
     }
     this._tinyFaceDetectorOptions = new TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
-    await this._startFaceDetection();
+    if ((_a2 = this._options.activate) != null ? _a2 : true) {
+      await this.activate();
+    }
   }
 }
 function insertElementToDOM(element, elementOrSelector) {
@@ -18452,7 +18462,8 @@ class CameraController {
       height: (_e2 = (_d = this._videoOptions) == null ? void 0 : _d.height) != null ? _e2 : 400
     }, (_f2 = options.screenshotOptions) != null ? _f2 : {});
     this._faceDetectOptions = __spreadValues({
-      faceUndetectedTimeoutMs: 2e4
+      faceUndetectedTimeoutMs: 2e4,
+      activate: true
     }, (_g = options.faceDetectOptions) != null ? _g : {});
     this._faceDetector = null;
     this._videoBaseElement = null;
@@ -18462,6 +18473,9 @@ class CameraController {
   }
   isActive() {
     return this._isActive;
+  }
+  isFaceDetectionActive() {
+    return this._faceDetector && this._faceDetector.isActive();
   }
   static async isAccessPermissionGranted(cb) {
     if (!CameraController.isSupportedCameraApi()) {
@@ -18607,6 +18621,7 @@ class CameraController {
       videoElement: this._videoBaseElement,
       faceUndetectedTimeoutMs: this._faceDetectOptions.faceUndetectedTimeoutMs,
       modelsUrl: this._faceDetectOptions.modelsUrl,
+      activate: this._faceDetectOptions.activate,
       onFaceUndetected: () => {
         var _a2, _b;
         (_b = (_a2 = this._options).onFaceUndetected) == null ? void 0 : _b.call(_a2);
@@ -18655,6 +18670,19 @@ class CameraController {
       cb == null ? void 0 : cb(false);
     }
     return this._isActive;
+  }
+  deactivateFaceDetection() {
+    if (!this._faceDetector) {
+      return;
+    }
+    this._faceDetector.deactivate();
+  }
+  async activateFaceDetection(cb) {
+    if (!this._faceDetector) {
+      this._faceDetector = await this._createFaceDetector();
+    }
+    await this._faceDetector.activate();
+    cb == null ? void 0 : cb();
   }
   async getScreenshotAsBase64(cb, options = {}) {
     var _a2, _b;

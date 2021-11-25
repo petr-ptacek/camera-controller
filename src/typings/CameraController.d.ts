@@ -17,7 +17,8 @@ type FileScreenshotOptions = ScreenshotOptions & { fileName?: string }
 
 type FaceDetectOptions =
   Pick<FaceDetectorOptions, 'modelsUrl'> &
-  Partial<Pick<FaceDetectorOptions, 'faceUndetectedTimeoutMs'>>
+  Partial<Pick<FaceDetectorOptions, 'faceUndetectedTimeoutMs'>> &
+  Partial<Pick<FaceDetectorOptions, 'activate'>>
 
 type CameraControllerOptions = {
   videoOptions?: VideoOptions;

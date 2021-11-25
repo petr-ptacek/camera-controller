@@ -62,6 +62,7 @@ export default class CameraController {
      */
     this._faceDetectOptions = {
       faceUndetectedTimeoutMs: 20000,
+      activate: true,
       ...(options.faceDetectOptions ?? {})
     };
 
@@ -101,6 +102,10 @@ export default class CameraController {
    */
   isActive() {
     return this._isActive;
+  }
+
+  isFaceDetectionActive() {
+    return this._faceDetector && this._faceDetector.isActive();
   }
 
   /**
@@ -347,6 +352,9 @@ export default class CameraController {
       videoElement: this._videoBaseElement,
       faceUndetectedTimeoutMs: this._faceDetectOptions.faceUndetectedTimeoutMs,
       modelsUrl: this._faceDetectOptions.modelsUrl,
+      activate: this._faceDetectOptions.activate,
+
+      /* handlers */
       onFaceUndetected: () => {
         this._options.onFaceUndetected?.();
       },
@@ -398,6 +406,9 @@ export default class CameraController {
 
       // Create FaceDetector
       this._faceDetector = await this._createFaceDetector();
+      // if ( this._faceDetectOptions.active ?? true ) {
+      //   await this.activateFaceDetection();
+      // }
 
       // Create ScreenVideo
       this._videoScreenElement = createVideo();
@@ -418,6 +429,31 @@ export default class CameraController {
     }
 
     return this._isActive;
+  }
+
+  /**
+   * @returns {void}
+   * @public
+   */
+  deactivateFaceDetection() {
+    if ( !this._faceDetector ) {
+      return;
+    }
+
+    this._faceDetector.deactivate();
+  }
+
+  /**
+   * @param {function():void} [cb]
+   * @returns {Promise<void>}
+   */
+  async activateFaceDetection(cb) {
+    if ( !this._faceDetector ) {
+      this._faceDetector = await this._createFaceDetector();
+    }
+
+    await this._faceDetector.activate();
+    cb?.();
   }
 
   /**

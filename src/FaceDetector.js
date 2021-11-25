@@ -162,10 +162,34 @@ export class FaceDetector {
   }
 
   /**
-   * @returns {Promise<void>}
+   * @returns {void}
    * @private
    */
-  async _startFaceDetection() {
+  _destroyCanvas() {
+    if ( this._canvas.parentElement ) {
+      this._canvas.parentElement.removeChild(this._canvas);
+    }
+
+    this._canvas = null;
+  }
+
+  /**
+   * @returns {void}
+   */
+  destroy() {
+    this.deactivate();
+    this._destroyCanvas();
+  }
+
+  /**
+   * @returns {Promise<void>}
+   * @public
+   */
+  async activate() {
+    if ( this.isActive() ) {
+      return;
+    }
+
     const handler = async () => {
       const detectData = await this._detectSingleFace();
       if ( detectData ) {
@@ -184,31 +208,20 @@ export class FaceDetector {
 
   /**
    * @returns {void}
-   * @private
+   * @public
    */
-  _stopFaceDetection() {
+  deactivate() {
     clearInterval(this._faceDetectionIntervalId);
     this._faceDetectionIntervalId = null;
+    this._faceUndetectedDatetime = null;
   }
 
   /**
-   * @returns {void}
-   * @private
+   * @returns {boolean}
+   * @public
    */
-  _destroyCanvas() {
-    if ( this._canvas.parentElement ) {
-      this._canvas.parentElement.removeChild(this._canvas);
-    }
-
-    this._canvas = null;
-  }
-
-  /**
-   * @returns {void}
-   */
-  destroy() {
-    this._stopFaceDetection();
-    this._destroyCanvas();
+  isActive() {
+    return this._faceDetectionIntervalId !== null;
   }
 
   /**
@@ -223,6 +236,9 @@ export class FaceDetector {
     }
 
     this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
-    await this._startFaceDetection();
+
+    if ( this._options.activate ?? true ) {
+      await this.activate();
+    }
   }
 }
