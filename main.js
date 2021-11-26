@@ -1,5 +1,6 @@
 import './style.css';
-import CameraController from '@/CameraController.js';
+import CameraController      from '@/CameraController.js';
+import { CameraPermissions } from '@/CameraPermissions';
 
 const btnCameraOn = document.getElementById('btn-camera-on');
 const btnCameraOff = document.getElementById('btn-camera-off');
@@ -90,6 +91,12 @@ async function makeScreenshotBase64() {
   }
 }
 
+async function checkPermissions() {
+  const cameraPermissions = new CameraPermissions();
+  cameraPermissions.check();
+  // CameraPermissions.check();
+}
+
 async function checkCameraAccessPermission() {
   const granted = await CameraController.isAccessPermissionGranted(null);
   console.log(`CameraAccessPermission: ${ granted }`);
@@ -114,7 +121,7 @@ function deactivateFaceDetection() {
 
 btnFDActivate.addEventListener('click', activateFaceDetection);
 btnFDDeactivate.addEventListener('click', deactivateFaceDetection);
-btnCheckCameraPermission.addEventListener('click', checkCameraAccessPermission);
+btnCheckCameraPermission.addEventListener('click', checkPermissions);
 btnCameraOn.addEventListener('click', startCamera);
 btnCameraOff.addEventListener('click', stopCamera);
 btnScreenshotAsBase64.addEventListener('click', makeScreenshotBase64);
