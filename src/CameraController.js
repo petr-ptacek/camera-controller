@@ -9,9 +9,11 @@
  * @typedef {import('@/typings').CallbackScreenshotBase64Handler} CallbackScreenshotBase64Handler
  * @typedef {import('@/typings').CallbackScreenshotImgHandler} CallbackScreenshotImgHandler
  * @typedef {import('@/typings').CallbackScreenshotFileHandler} CallbackScreenshotFileHandler
+ * @typedef {import('@/typings').MediaPermissionHandlersMap} MediaPermissionHandlersMap
  */
 
-import { FaceDetector } from '@/FaceDetector';
+import { FaceDetector } from '@/FaceDetector.js';
+import { MediaChecker } from '@/MediaChecker.js';
 import {
   createCanvas,
   blobToFile,
@@ -174,14 +176,6 @@ export default class CameraController {
 
     return videoElement;
   }
-
-  // showBaseVideoElement() {
-  //   this._videoBaseElement.style.cssText = '';
-  // }
-  //
-  // hideBaseVideoElement() {
-  //   this._videoBaseElement.style.cssText = this._videoBaseElement.dataset.cssHidden;
-  // }
 
   /**
    * @returns {Promise<MediaStream|null>}
@@ -383,6 +377,14 @@ export default class CameraController {
   }
 
   /**
+   * @param {MediaPermissionHandlersMap} handlers
+   * @returns {Promise<boolean>}
+   */
+  static async checkPermissionsAndCompatibility(handlers) {
+    return await MediaChecker.checkVideoPermissions(handlers);
+  }
+
+  /**
    * @param {CallbackStartHandler?} cb
    * @returns {Promise<boolean>}
    * @public
@@ -406,9 +408,6 @@ export default class CameraController {
 
       // Create FaceDetector
       this._faceDetector = await this._createFaceDetector();
-      // if ( this._faceDetectOptions.active ?? true ) {
-      //   await this.activateFaceDetection();
-      // }
 
       // Create ScreenVideo
       this._videoScreenElement = createVideo();

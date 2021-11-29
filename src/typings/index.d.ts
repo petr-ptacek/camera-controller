@@ -15,6 +15,7 @@ export {
 } from './CanvasOptions';
 
 export {
+  MediaPermissionHandlersMap,
   CallbackStartHandler,
   CallbackScreenshotBase64Handler,
   CallbackScreenshotImgHandler,

@@ -1,6 +1,5 @@
 import './style.css';
-import CameraController      from '@/CameraController.js';
-import { CameraPermissions } from '@/CameraPermissions';
+import CameraController from '@/CameraController.js';
 
 const btnCameraOn = document.getElementById('btn-camera-on');
 const btnCameraOff = document.getElementById('btn-camera-off');
@@ -92,9 +91,26 @@ async function makeScreenshotBase64() {
 }
 
 async function checkPermissions() {
-  const cameraPermissions = new CameraPermissions();
-  cameraPermissions.check();
-  // CameraPermissions.check();
+  const passed = await CameraController.checkPermissionsAndCompatibility({
+    onSystemPermissionDenied: () => {
+      console.log('onSystemPermissionDenied');
+    },
+    onUserPermissionDenied: () => {
+      console.log('onUserPermissionDenied');
+    },
+    onCameraApiNotSupported: () => {
+      console.log('onCameraApiNotSupported');
+    },
+    onDeviceNotFound: () => {
+      console.log('onDeviceNotFound');
+    },
+    onTrackError: () => {
+      console.log('onTrackError');
+    },
+    onError: () => {
+      console.log('onError');
+    }
+  });
 }
 
 async function checkCameraAccessPermission() {

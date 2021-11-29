@@ -67,6 +67,30 @@ const cameraController = new CameraController({
 * `CameraController.isSupportedCameraApi(): boolean`
   * check if the browser supports the camera API
 
+* `CameraController.checkPermissionsAndCompatibility(handlers): Promise<boolean>`
+```js
+const passed = await CameraController.checkPermissionsAndCompatibility({
+    onSystemPermissionDenied: () => {
+
+    },
+    onUserPermissionDenied: () => {
+
+    },
+    onCameraApiNotSupported: () => {
+
+    },
+    onDeviceNotFound: () => {
+
+    },
+    onTrackError: () => {
+
+    },
+    onError: () => {
+
+    }
+  });
+```
+
 ## Public Methods
 
 * `isActive(): boolean`
