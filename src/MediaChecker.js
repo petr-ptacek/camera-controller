@@ -21,7 +21,13 @@ function handleUserPermissionDenied(error, handlers) {
  * @param {MediaPermissionHandlersMap} handlers
  */
 function handleSystemPermissionDenied(error, handlers) {
-  handlers.onSystemPermissionDenied?.(error);
+  switch ( error.name ) {
+    case 'NotFoundError':
+      handlers.onDeviceNotFound?.(error);
+      break;
+    default:
+      handlers.onSystemPermissionDenied?.(error);
+  }
 }
 
 /**

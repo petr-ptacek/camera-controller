@@ -20160,8 +20160,14 @@ function handleUserPermissionDenied(error, handlers) {
   (_a2 = handlers.onUserPermissionDenied) == null ? void 0 : _a2.call(handlers, error);
 }
 function handleSystemPermissionDenied(error, handlers) {
-  var _a2;
-  (_a2 = handlers.onSystemPermissionDenied) == null ? void 0 : _a2.call(handlers, error);
+  var _a2, _b;
+  switch (error.name) {
+    case "NotFoundError":
+      (_a2 = handlers.onDeviceNotFound) == null ? void 0 : _a2.call(handlers, error);
+      break;
+    default:
+      (_b = handlers.onSystemPermissionDenied) == null ? void 0 : _b.call(handlers, error);
+  }
 }
 function handleCouldNotStartVideoSource(error, handlers) {
   var _a2;
