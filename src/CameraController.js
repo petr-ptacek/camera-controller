@@ -4,6 +4,7 @@
  * @typedef {import('@/typings').ScreenshotOptions} ScreenshotOptions
  * @typedef {import('@/typings').FileScreenshotOptions} FileScreenshotOptions
  * @typedef {import('@/typings').FaceDetectOptions} FaceDetectOptions
+ * @typedef {import('@/typings').FaceDetectorOptions} FaceDetectorOptions
  * @typedef {import('@/typings').CanvasOptions} CanvasOptions
  * @typedef {import('@/typings').CallbackStartHandler} CallbackStartHandler
  * @typedef {import('@/typings').CallbackScreenshotBase64Handler} CallbackScreenshotBase64Handler
@@ -338,15 +339,16 @@ export default class CameraController {
   }
 
   /**
-   * @returns {Promise<FaceDetector>}
+   * @param {Partial<FaceDetectorOptions>} [options]
+   * @returns {FaceDetector}
    * @private
    */
-  async _createFaceDetector() {
-    const faceDetector = new FaceDetector({
+  _createFaceDetector(options) {
+    return new FaceDetector({
       videoElement: this._videoBaseElement,
       faceUndetectedTimeoutMs: this._faceDetectOptions.faceUndetectedTimeoutMs,
       modelsUrl: this._faceDetectOptions.modelsUrl,
-      activate: this._faceDetectOptions.activate,
+      activate: options?.activate ?? this._faceDetectOptions.activate,
 
       /* handlers */
       onFaceUndetected: () => {
@@ -356,10 +358,6 @@ export default class CameraController {
         this._options.onFaceDetected?.();
       }
     });
-
-    await faceDetector.init();
-
-    return faceDetector;
   }
 
   /**
@@ -407,7 +405,7 @@ export default class CameraController {
       await this._videoBaseElement.play();
 
       // Create FaceDetector
-      this._faceDetector = await this._createFaceDetector();
+      this._faceDetector = this._createFaceDetector();
 
       // Create ScreenVideo
       this._videoScreenElement = createVideo();
@@ -448,7 +446,7 @@ export default class CameraController {
    */
   async activateFaceDetection(cb) {
     if ( !this._faceDetector ) {
-      this._faceDetector = await this._createFaceDetector();
+      this._faceDetector = this._createFaceDetector({ activate: false });
     }
 
     await this._faceDetector.activate();

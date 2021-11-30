@@ -18231,7 +18231,7 @@ async function execAsync(promise) {
 }
 class FaceDetector {
   constructor(options) {
-    var _a2, _b;
+    var _a2, _b, _c2;
     this._options = options;
     this._faceUndetectedTimeoutMs = (_b = (_a2 = this._options) == null ? void 0 : _a2.faceUndetectedTimeoutMs) != null ? _b : 2e4;
     this._modelsUrl = options.modelsUrl;
@@ -18240,6 +18240,9 @@ class FaceDetector {
     this._canvas = this._createHelperCanvas();
     this._faceDetectionIntervalId = null;
     this._faceUndetectedDatetime = null;
+    if ((_c2 = this._options.activate) != null ? _c2 : true) {
+      this.activate();
+    }
   }
   async _detectSingleFace() {
     const detectSingleFaceTask = detectSingleFace(this._videoInput, this._tinyFaceDetectorOptions);
@@ -18300,6 +18303,11 @@ class FaceDetector {
     if (this.isActive()) {
       return;
     }
+    const { error } = await execAsync(this._loadModels());
+    if (error) {
+      throw new Error("Failed to load face-api models ...");
+    }
+    this._tinyFaceDetectorOptions = new TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
     const handler = async () => {
       const detectData = await this._detectSingleFace();
       if (detectData) {
@@ -18313,22 +18321,12 @@ class FaceDetector {
   }
   deactivate() {
     clearInterval(this._faceDetectionIntervalId);
+    this._tinyFaceDetectorOptions = null;
     this._faceDetectionIntervalId = null;
     this._faceUndetectedDatetime = null;
   }
   isActive() {
     return this._faceDetectionIntervalId !== null;
-  }
-  async init() {
-    var _a2;
-    const { error } = await execAsync(this._loadModels());
-    if (error) {
-      throw new Error("Failed to load face-api models ...");
-    }
-    this._tinyFaceDetectorOptions = new TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
-    if ((_a2 = this._options.activate) != null ? _a2 : true) {
-      await this.activate();
-    }
   }
 }
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
@@ -20215,7 +20213,7 @@ class MediaChecker {
           break;
       }
     }
-    return result.data;
+    return !!result.data;
   }
 }
 class CameraController {
@@ -20387,23 +20385,22 @@ class CameraController {
     this._faceDetector.destroy();
     this._faceDetector = null;
   }
-  async _createFaceDetector() {
-    const faceDetector = new FaceDetector({
+  _createFaceDetector(options) {
+    var _a2;
+    return new FaceDetector({
       videoElement: this._videoBaseElement,
       faceUndetectedTimeoutMs: this._faceDetectOptions.faceUndetectedTimeoutMs,
       modelsUrl: this._faceDetectOptions.modelsUrl,
-      activate: this._faceDetectOptions.activate,
+      activate: (_a2 = options == null ? void 0 : options.activate) != null ? _a2 : this._faceDetectOptions.activate,
       onFaceUndetected: () => {
-        var _a2, _b;
-        (_b = (_a2 = this._options).onFaceUndetected) == null ? void 0 : _b.call(_a2);
+        var _a3, _b;
+        (_b = (_a3 = this._options).onFaceUndetected) == null ? void 0 : _b.call(_a3);
       },
       onFaceDetected: () => {
-        var _a2, _b;
-        (_b = (_a2 = this._options).onFaceDetected) == null ? void 0 : _b.call(_a2);
+        var _a3, _b;
+        (_b = (_a3 = this._options).onFaceDetected) == null ? void 0 : _b.call(_a3);
       }
     });
-    await faceDetector.init();
-    return faceDetector;
   }
   stop() {
     var _a2, _b;
@@ -20429,7 +20426,7 @@ class CameraController {
       this._videoBaseElement.srcObject = this._mediaStream;
       document.body.append(this._videoBaseElement);
       await this._videoBaseElement.play();
-      this._faceDetector = await this._createFaceDetector();
+      this._faceDetector = this._createFaceDetector();
       this._videoScreenElement = createVideo();
       if (this._videoOptions.elementOrSelector) {
         this.insertVideoScreen(this._videoOptions.elementOrSelector);
@@ -20453,7 +20450,7 @@ class CameraController {
   }
   async activateFaceDetection(cb) {
     if (!this._faceDetector) {
-      this._faceDetector = await this._createFaceDetector();
+      this._faceDetector = this._createFaceDetector({ activate: false });
     }
     await this._faceDetector.activate();
     cb == null ? void 0 : cb();

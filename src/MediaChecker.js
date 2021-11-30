@@ -106,6 +106,6 @@ export class MediaChecker {
       }
     }
 
-    return result.data;
+    return !!result.data;
   }
 }

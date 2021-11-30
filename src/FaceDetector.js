@@ -68,6 +68,10 @@ export class FaceDetector {
      * @private
      */
     this._faceUndetectedDatetime = null;
+
+    if ( this._options.activate ?? true ) {
+      this.activate();
+    }
   }
 
   /**
@@ -190,6 +194,15 @@ export class FaceDetector {
       return;
     }
 
+    const { error } = await execAsync(this._loadModels());
+
+    if ( error ) {
+      throw new Error('Failed to load face-api models ...');
+    }
+
+    this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
+
+    // set the face detect
     const handler = async () => {
       const detectData = await this._detectSingleFace();
       if ( detectData ) {
@@ -212,6 +225,7 @@ export class FaceDetector {
    */
   deactivate() {
     clearInterval(this._faceDetectionIntervalId);
+    this._tinyFaceDetectorOptions = null;
     this._faceDetectionIntervalId = null;
     this._faceUndetectedDatetime = null;
   }
@@ -224,21 +238,21 @@ export class FaceDetector {
     return this._faceDetectionIntervalId !== null;
   }
 
-  /**
-   * @returns {Promise<void>}
-   * @public
-   */
-  async init() {
-    const { error } = await execAsync(this._loadModels());
-
-    if ( error ) {
-      throw new Error('Failed to load face-api models ...');
-    }
-
-    this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
-
-    if ( this._options.activate ?? true ) {
-      await this.activate();
-    }
-  }
+  // /**
+  //  * @returns {Promise<void>}
+  //  * @public
+  //  */
+  // async init() {
+  //   const { error } = await execAsync(this._loadModels());
+  //
+  //   if ( error ) {
+  //     throw new Error('Failed to load face-api models ...');
+  //   }
+  //
+  //   this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
+  //
+  //   if ( this._options.activate ?? true ) {
+  //     await this.activate();
+  //   }
+  // }
 }
