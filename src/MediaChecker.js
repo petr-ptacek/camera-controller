@@ -25,6 +25,9 @@ function handleSystemPermissionDenied(error, handlers) {
     case 'NotFoundError':
       handlers.onDeviceNotFound?.(error);
       break;
+    case 'NotReadableError':
+      handlers.onTrackError?.(error);
+      break;
     default:
       handlers.onSystemPermissionDenied?.(error);
   }

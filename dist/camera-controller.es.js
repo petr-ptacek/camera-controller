@@ -20158,13 +20158,16 @@ function handleUserPermissionDenied(error, handlers) {
   (_a2 = handlers.onUserPermissionDenied) == null ? void 0 : _a2.call(handlers, error);
 }
 function handleSystemPermissionDenied(error, handlers) {
-  var _a2, _b;
+  var _a2, _b, _c2;
   switch (error.name) {
     case "NotFoundError":
       (_a2 = handlers.onDeviceNotFound) == null ? void 0 : _a2.call(handlers, error);
       break;
+    case "NotReadableError":
+      (_b = handlers.onTrackError) == null ? void 0 : _b.call(handlers, error);
+      break;
     default:
-      (_b = handlers.onSystemPermissionDenied) == null ? void 0 : _b.call(handlers, error);
+      (_c2 = handlers.onSystemPermissionDenied) == null ? void 0 : _c2.call(handlers, error);
   }
 }
 function handleCouldNotStartVideoSource(error, handlers) {
