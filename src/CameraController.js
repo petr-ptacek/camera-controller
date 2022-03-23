@@ -155,14 +155,25 @@ export default class CameraController {
    */
   static async isAvailableCameraDevice(cb) {
     const isSupportedApi = CameraController.isSupportedCameraApi();
-
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const isAvailableVideoInput = !!devices.find(device => device.kind === 'videoinput');
-
+    const isAvailableVideoInput = isSupportedApi && !!(await CameraController.getCameraDevices()).length;
     const isAvailable = isSupportedApi && isAvailableVideoInput;
 
     cb?.(isAvailable);
     return isAvailable;
+  }
+
+  /**
+   * @returns {Promise<MediaDeviceInfo[]>}
+   */
+  static async getCameraDevices() {
+    const isSupportedApi = CameraController.isSupportedCameraApi();
+
+    if ( !isSupportedApi ) {
+      return [];
+    }
+
+    return (await navigator.mediaDevices.enumerateDevices())
+      .filter(device => device.kind === 'videoinput');
   }
 
   /**
