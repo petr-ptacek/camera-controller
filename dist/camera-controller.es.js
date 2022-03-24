@@ -20271,11 +20271,17 @@ class CameraController {
   }
   static async isAvailableCameraDevice(cb) {
     const isSupportedApi = CameraController.isSupportedCameraApi();
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const isAvailableVideoInput = !!devices.find((device) => device.kind === "videoinput");
+    const isAvailableVideoInput = isSupportedApi && !!(await CameraController.getCameraDevices()).length;
     const isAvailable = isSupportedApi && isAvailableVideoInput;
     cb == null ? void 0 : cb(isAvailable);
     return isAvailable;
+  }
+  static async getCameraDevices() {
+    const isSupportedApi = CameraController.isSupportedCameraApi();
+    if (!isSupportedApi) {
+      return [];
+    }
+    return (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "videoinput");
   }
   _createBaseVideoElement() {
     const videoElement = createVideo({ autoplay: false });
@@ -20371,21 +20377,21 @@ class CameraController {
     this.removeVideoScreen();
     this._videoScreenElement = null;
   }
+  _destroyMediaStreamTracks() {
+    var _a2;
+    (_a2 = this._mediaStream) == null ? void 0 : _a2.getTracks().forEach((track) => {
+      if (track.readyState === "live") {
+        track.stop();
+      }
+    });
+  }
   _destroyMediaStream() {
-    if (this._mediaStream) {
-      this._mediaStream.getTracks().forEach((track) => {
-        if (track.readyState === "live") {
-          track.stop();
-        }
-      });
-    }
+    this._destroyMediaStreamTracks();
     this._mediaStream = null;
   }
   _destroyFaceDetector() {
-    if (!this._faceDetector) {
-      return;
-    }
-    this._faceDetector.destroy();
+    var _a2;
+    (_a2 = this._faceDetector) == null ? void 0 : _a2.destroy();
     this._faceDetector = null;
   }
   _createFaceDetector(options) {
@@ -20446,10 +20452,8 @@ class CameraController {
     return this._isActive;
   }
   deactivateFaceDetection() {
-    if (!this._faceDetector) {
-      return;
-    }
-    this._faceDetector.deactivate();
+    var _a2;
+    (_a2 = this._faceDetector) == null ? void 0 : _a2.deactivate();
   }
   async activateFaceDetection(cb) {
     if (!this._faceDetector) {
@@ -20512,13 +20516,12 @@ class CameraController {
     insertElementToDOM(this._videoScreenElement, elementOrSelector);
   }
   removeVideoScreen() {
+    var _a2;
     if (!this._videoScreenElement) {
       return;
     }
     this._videoScreenElement.srcObject = null;
-    if (this._videoScreenElement.parentElement) {
-      this._videoScreenElement.parentElement.removeChild(this._videoScreenElement);
-    }
+    (_a2 = this._videoScreenElement.parentElement) == null ? void 0 : _a2.removeChild(this._videoScreenElement);
   }
 }
 export { CameraController as default };

@@ -324,15 +324,20 @@ export default class CameraController {
    * @returns {void}
    * @private
    */
-  _destroyMediaStream() {
-    if ( this._mediaStream ) {
-      this._mediaStream.getTracks().forEach(track => {
-        if ( track.readyState === 'live' ) {
-          track.stop();
-        }
-      });
-    }
+  _destroyMediaStreamTracks() {
+    this._mediaStream?.getTracks().forEach(track => {
+      if ( track.readyState === 'live' ) {
+        track.stop();
+      }
+    });
+  }
 
+  /**
+   * @returns {void}
+   * @private
+   */
+  _destroyMediaStream() {
+    this._destroyMediaStreamTracks();
     this._mediaStream = null;
   }
 
@@ -341,11 +346,7 @@ export default class CameraController {
    * @private
    */
   _destroyFaceDetector() {
-    if ( !this._faceDetector ) {
-      return;
-    }
-
-    this._faceDetector.destroy();
+    this._faceDetector?.destroy();
     this._faceDetector = null;
   }
 
@@ -444,11 +445,7 @@ export default class CameraController {
    * @public
    */
   deactivateFaceDetection() {
-    if ( !this._faceDetector ) {
-      return;
-    }
-
-    this._faceDetector.deactivate();
+    this._faceDetector?.deactivate();
   }
 
   /**
@@ -576,8 +573,6 @@ export default class CameraController {
     }
 
     this._videoScreenElement.srcObject = null;
-    if ( this._videoScreenElement.parentElement ) {
-      this._videoScreenElement.parentElement.removeChild(this._videoScreenElement);
-    }
+    this._videoScreenElement.parentElement?.removeChild(this._videoScreenElement);
   }
 }

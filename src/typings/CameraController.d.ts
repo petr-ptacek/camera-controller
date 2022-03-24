@@ -28,9 +28,11 @@ type CameraControllerOptions = {
   onRecordingStart?: () => void;
   onRecordingEnd?: () => void;
   onRecordingInterrupted?: () => void;
+
   onDeviceNotAvailable?: () => void;
   onDevicePermissionDenied?: () => void;
   onDeviceNotReadable?: () => void;
+  onDeviceSwitch?: () => void;
 
   onFaceDetected?: () => void;
   onFaceUndetected?: () => void;
