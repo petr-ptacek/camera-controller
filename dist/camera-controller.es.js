@@ -18233,6 +18233,7 @@ class FaceDetector {
   constructor(options) {
     var _a2, _b, _c2;
     this._options = options;
+    this._log2Console = options.log2Console;
     this._faceUndetectedTimeoutMs = (_b = (_a2 = this._options) == null ? void 0 : _a2.faceUndetectedTimeoutMs) != null ? _b : 2e4;
     this._modelsUrl = options.modelsUrl;
     this._tinyFaceDetectorOptions = null;
@@ -18243,6 +18244,12 @@ class FaceDetector {
     if ((_c2 = this._options.activate) != null ? _c2 : true) {
       this.activate();
     }
+  }
+  _log(content) {
+    if (!this._log2Console) {
+      return;
+    }
+    console.log(content);
   }
   async _detectSingleFace() {
     const detectSingleFaceTask = detectSingleFace(this._videoInput, this._tinyFaceDetectorOptions);
@@ -18283,7 +18290,7 @@ class FaceDetector {
       this._faceUndetectedDatetime = new Date();
     }
     const timeout = Date.now() - this._faceUndetectedDatetime.getTime();
-    console.log(`faceUndetected timeout: ${timeout}`);
+    this._log(`faceUndetected timeout: ${timeout}`);
     if (timeout > this._faceUndetectedTimeoutMs) {
       (_b = (_a2 = this._options).onFaceUndetected) == null ? void 0 : _b.call(_a2);
       this._faceUndetectedDatetime = null;
@@ -20221,22 +20228,24 @@ class MediaChecker {
 }
 class CameraController {
   constructor(options = {}) {
-    var _a2, _b, _c2, _d, _e2, _f2, _g;
+    var _a2, _b, _c2, _d, _e2, _f2, _g, _h2;
     this._options = options;
+    this._log2Console = (_a2 = options.log2Console) != null ? _a2 : false;
     this._videoOptions = __spreadValues({
       width: 200,
       height: 200
-    }, (_a2 = options.videoOptions) != null ? _a2 : {});
+    }, (_b = options.videoOptions) != null ? _b : {});
     this._screenshotOptions = __spreadValues({
       useAspectRatio: true,
       quality: 0.85,
-      width: (_c2 = (_b = this._videoOptions) == null ? void 0 : _b.width) != null ? _c2 : 400,
-      height: (_e2 = (_d = this._videoOptions) == null ? void 0 : _d.height) != null ? _e2 : 400
-    }, (_f2 = options.screenshotOptions) != null ? _f2 : {});
+      width: (_d = (_c2 = this._videoOptions) == null ? void 0 : _c2.width) != null ? _d : 400,
+      height: (_f2 = (_e2 = this._videoOptions) == null ? void 0 : _e2.height) != null ? _f2 : 400
+    }, (_g = options.screenshotOptions) != null ? _g : {});
     this._faceDetectOptions = __spreadValues({
       faceUndetectedTimeoutMs: 2e4,
-      activate: true
-    }, (_g = options.faceDetectOptions) != null ? _g : {});
+      activate: true,
+      logToConsole: this._log2Console
+    }, (_h2 = options.faceDetectOptions) != null ? _h2 : {});
     this._faceDetector = null;
     this._videoBaseElement = null;
     this._videoScreenElement = null;
@@ -20336,8 +20345,11 @@ class CameraController {
         break;
       default:
         this.stop();
-        console.log(error);
+        this._log(error.toString());
     }
+  }
+  _log(content) {
+    console.log(content);
   }
   async _makeScreenshot() {
     if (!this._isActive) {
@@ -20401,6 +20413,7 @@ class CameraController {
       faceUndetectedTimeoutMs: this._faceDetectOptions.faceUndetectedTimeoutMs,
       modelsUrl: this._faceDetectOptions.modelsUrl,
       activate: (_a2 = options == null ? void 0 : options.activate) != null ? _a2 : this._faceDetectOptions.activate,
+      log2Console: this._log2Console,
       onFaceUndetected: () => {
         var _a3, _b;
         (_b = (_a3 = this._options).onFaceUndetected) == null ? void 0 : _b.call(_a3);

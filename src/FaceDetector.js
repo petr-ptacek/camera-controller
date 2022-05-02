@@ -27,6 +27,8 @@ export class FaceDetector {
      */
     this._options = options;
 
+    this._log2Console = options.log2Console;
+
     /**
      * @type {number}
      * @private
@@ -72,6 +74,19 @@ export class FaceDetector {
     if ( this._options.activate ?? true ) {
       this.activate();
     }
+  }
+
+  /**
+   * @param {string} content
+   * @returns {void}
+   * @private
+   */
+  _log(content) {
+    if ( !this._log2Console ) {
+      return;
+    }
+
+    console.log(content);
   }
 
   /**
@@ -158,7 +173,7 @@ export class FaceDetector {
     }
 
     const timeout = (Date.now() - this._faceUndetectedDatetime.getTime());
-    console.log(`faceUndetected timeout: ${ timeout }`);
+    this._log(`faceUndetected timeout: ${ timeout }`);
     if ( timeout > this._faceUndetectedTimeoutMs ) {
       this._options.onFaceUndetected?.();
       this._faceUndetectedDatetime = null;

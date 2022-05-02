@@ -3,6 +3,7 @@ type FaceDetectorOptions = {
   videoElement: HTMLVideoElement;
   faceUndetectedTimeoutMs?: number;
   activate?: boolean;
+  log2Console?: boolean;
 
   onFaceUndetected?(): void;
   onFaceDetected?(): void;

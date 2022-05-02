@@ -36,6 +36,8 @@ type CameraControllerOptions = {
 
   onFaceDetected?: () => void;
   onFaceUndetected?: () => void;
+
+  log2Console?: boolean;
 }
 
 export {

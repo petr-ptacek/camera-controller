@@ -37,6 +37,8 @@ export default class CameraController {
      */
     this._options = options;
 
+    this._log2Console = options.log2Console ?? false;
+
     /**
      * @type {VideoOptions}
      * @private
@@ -66,6 +68,7 @@ export default class CameraController {
     this._faceDetectOptions = {
       faceUndetectedTimeoutMs: 20000,
       activate: true,
+      logToConsole: this._log2Console,
       ...(options.faceDetectOptions ?? {})
     };
 
@@ -244,8 +247,17 @@ export default class CameraController {
         break;
       default:
         this.stop();
-        console.log(error);
+        this._log(error.toString());
     }
+  }
+
+  /**
+   * @param {string} content
+   * @returns {void}
+   * @private
+   */
+  _log(content) {
+    console.log(content);
   }
 
   /**
@@ -361,6 +373,7 @@ export default class CameraController {
       faceUndetectedTimeoutMs: this._faceDetectOptions.faceUndetectedTimeoutMs,
       modelsUrl: this._faceDetectOptions.modelsUrl,
       activate: options?.activate ?? this._faceDetectOptions.activate,
+      log2Console: this._log2Console,
 
       /* handlers */
       onFaceUndetected: () => {
