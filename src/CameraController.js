@@ -68,7 +68,6 @@ export default class CameraController {
     this._faceDetectOptions = {
       faceUndetectedTimeoutMs: 20000,
       activate: true,
-      logToConsole: this._log2Console,
       ...(options.faceDetectOptions ?? {})
     };
 

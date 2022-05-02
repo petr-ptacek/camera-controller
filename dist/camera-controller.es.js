@@ -20243,8 +20243,7 @@ class CameraController {
     }, (_g = options.screenshotOptions) != null ? _g : {});
     this._faceDetectOptions = __spreadValues({
       faceUndetectedTimeoutMs: 2e4,
-      activate: true,
-      logToConsole: this._log2Console
+      activate: true
     }, (_h2 = options.faceDetectOptions) != null ? _h2 : {});
     this._faceDetector = null;
     this._videoBaseElement = null;
