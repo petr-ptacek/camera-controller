@@ -18314,14 +18314,20 @@ class FaceDetector {
     if (error) {
       throw new Error("Failed to load face-api models ...");
     }
-    this._tinyFaceDetectorOptions = new TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
+    this._tinyFaceDetectorOptions = new TinyFaceDetectorOptions({ scoreThreshold: 0.4, inputSize: 224 });
+    let pending = false;
     const handler = async () => {
+      if (pending) {
+        return;
+      }
+      pending = true;
       const detectData = await this._detectSingleFace();
       if (detectData) {
         this._faceDetectedHandler(detectData);
       } else {
         this._faceUndetectedHandler();
       }
+      pending = false;
     };
     await handler();
     this._faceDetectionIntervalId = setInterval(handler, 1e3);
@@ -20303,8 +20309,8 @@ class CameraController {
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: 1280,
-          height: 960
+          aspectRatio: 4 / 3,
+          width: { min: 420 }
         },
         audio: false
       });

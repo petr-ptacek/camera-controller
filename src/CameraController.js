@@ -202,8 +202,8 @@ export default class CameraController {
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: 1280,
-          height: 960
+          aspectRatio: 4 / 3,
+          width: { min: 420 }
         },
         audio: false
       });

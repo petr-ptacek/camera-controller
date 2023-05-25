@@ -1,5 +1,5 @@
 /**
- * @typedef {import('@/typings').FaceDetectorOptions} FaceDetectorOptions
+ * @typedef {import("@/typings").FaceDetectorOptions} FaceDetectorOptions
  */
 
 // import {
@@ -11,8 +11,8 @@
 //   TinyFaceDetectorOptions,
 //   nets
 // }                    from 'face-api.js/build/es6';
-import * as faceapi  from 'face-api.js';
-import { execAsync } from '@/utils/execAsync';
+import * as faceapi  from "face-api.js";
+import { execAsync } from "@/utils/execAsync";
 
 export class FaceDetector {
 
@@ -90,7 +90,7 @@ export class FaceDetector {
   }
 
   /**
-   * @returns {Promise<import('face-api.js').FaceDetection | undefined>}
+   * @returns {Promise<import("face-api.js").FaceDetection | undefined>}
    * @private
    */
   async _detectSingleFace() {
@@ -115,7 +115,7 @@ export class FaceDetector {
    */
   _createHelperCanvas() {
     const canvas = faceapi.createCanvasFromMedia(this._videoInput);
-    canvas.style.position = 'absolute';
+    canvas.style.position = "absolute";
     faceapi.matchDimensions(canvas, this._getVideoDisplaySize());
     document.body.append(canvas);
     return canvas;
@@ -128,8 +128,8 @@ export class FaceDetector {
    */
   async _drawDetections(detectData) {
     this._canvas
-        .getContext('2d')
-        .clearRect(0, 0, this._canvas.width, this._canvas.height);
+      .getContext("2d")
+      .clearRect(0, 0, this._canvas.width, this._canvas.height);
 
     faceapi.draw.drawDetections(
       this._canvas,
@@ -173,7 +173,7 @@ export class FaceDetector {
     }
 
     const timeout = (Date.now() - this._faceUndetectedDatetime.getTime());
-    this._log(`faceUndetected timeout: ${ timeout }`);
+    this._log(`faceUndetected timeout: ${timeout}`);
     if ( timeout > this._faceUndetectedTimeoutMs ) {
       this._options.onFaceUndetected?.();
       this._faceUndetectedDatetime = null;
@@ -212,19 +212,29 @@ export class FaceDetector {
     const { error } = await execAsync(this._loadModels());
 
     if ( error ) {
-      throw new Error('Failed to load face-api models ...');
+      throw new Error("Failed to load face-api models ...");
     }
 
-    this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4 });
+    this._tinyFaceDetectorOptions = new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.4, inputSize: 224 });
 
+    let pending = false;
     // set the face detect
     const handler = async () => {
+      if ( pending ) {
+        return;
+      }
+
+      pending = true;
+
       const detectData = await this._detectSingleFace();
+
       if ( detectData ) {
         this._faceDetectedHandler(detectData);
       } else {
         this._faceUndetectedHandler();
       }
+
+      pending = false;
     };
 
     await handler();

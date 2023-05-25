@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "file": [
+      "vite.config.js"
+    ],
+    "types": [
+      "node"
+    ]
+  }
+}
